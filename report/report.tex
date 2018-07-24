@@ -1,0 +1,930 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{framed}
+\usepackage{amsfonts}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{tabularx}
+\usepackage{color}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+% \usepackage[round, sort]{natbib}
+\usepackage{tikz}
+
+\bibliographystyle {abbrv}
+\usetikzlibrary{decorations.pathreplacing, matrix}
+
+\graphicspath{{../imgs/}}
+
+\definecolor{morange}{RGB}{237,106,90}
+\definecolor{mgreen}{RGB}{63,127,95}
+\definecolor{mpurple}{RGB}{127,0,85}
+
+\lstset{
+  basicstyle=\small\ttfamily, % Global Code Style
+  captionpos=b, % Position of the Caption (t for top, b for bottom)
+  extendedchars=true, % Allows 256 instead of 128 ASCII characters
+  tabsize=2, % number of spaces indented when discovering a tab
+  columns=fixed, % make all characters equal width
+  keepspaces=true, % does not ignore spaces to fit width, convert tabs to spaces
+  showstringspaces=false, % lets spaces in strings appear as real spaces
+  breaklines=true, % wrap lines if they don't fit
+  frame=trbl, % draw a frame at the top, right, left and bottom of the listing
+  frameround=tttt, % make the frame round at all four corners
+  framesep=4pt, % quarter circle size of the round corners
+  numbers=left, % show line numbers at the left
+  numberstyle=\tiny\ttfamily, % style of the line numbers
+  commentstyle=\color{mgreen}, % style of comments
+  keywordstyle=\color{mpurple}, % style of keywords
+  stringstyle=\color{morange}, % style of strings
+}
+
+% TAILLE DES PAGES (A4 serré)
+
+\setlength{\intextsep}{2em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+%% \setlength{\textwidth}{17cm}
+%% \setlength{\textheight}{24cm}
+%% \setlength{\oddsidemargin}{-.7cm}
+%% \setlength{\evensidemargin}{-.7cm}
+%% \setlength{\topmargin}{-.5in}
+
+
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.6pt}% default is 0pt
+\lhead{}
+\rhead{}
+\lfoot{Page \thepage\ of \pageref{LastPage}}
+\rfoot{Rémi Lespinet}
+\cfoot{}
+\cfoot{}
+
+\newcounter{cquestion}
+\renewcommand{\thecquestion}{\arabic{cquestion}}
+\newenvironment{question}
+{\par \vspace{0.5em} \noindent \stepcounter{cquestion} \hspace{-1em}
+ $\bullet$ \underline{Q\thecquestion :}}
+{}
+
+\newenvironment{note}
+{\begin{framed} \textbf{Note : }}
+{\end{framed}}
+
+\newenvironment{comment}
+% {\color{gray} \textbf{Comment : }}
+{\color{gray}}
+{}
+
+
+% Commandes de mise en page
+\newcommand{\file}[1]{\lstinline{#1}}
+\newcommand{\name}[1]{\emph{#1}}
+\newcommand{\Fig}[1]{Fig \ref{#1} p. \pageref{#1}}
+\newcommand{\Figure}[1]{Figure \ref{#1} p. \pageref{#1}}
+\newcommand{\Tab}[1]{Tab \ref{#1} p. \pageref{#1}}
+\newcommand{\Table}[1]{Table \ref{#1} p. \pageref{#1}}
+\newcommand{\itemi}{\item[$\bullet$]}
+% Commandes color
+\newcommand{\colgood}[1]{\color{ForestGreen} #1}
+\newcommand{\colbad}[1]{\color{BrickRed} #1}
+
+
+% Commandes de maths
+\newcommand{\function}[3]{#1 : #2 \to #3}
+\newcommand{\intn}[2]{\left\{ #1 \dots #2 \right\}}
+\newcommand{\intr}[2]{\left[ #1 ; #2 \right]}
+\newcommand{\intro}[2]{\left] #1 ; #2 \right[}
+\newcommand{\dotp}[2]{\langle #1, #2 \rangle}
+\newcommand{\logn}[1]{\ln\left( #1\right)}
+%% \newcommand{\det}[1]{\left| #1 \right|}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\grad}{\nabla}
+\newcommand{\norm}[1]{\|#1\|}
+\newcommand{\set}[2]{\left\{ #1 \hspace{.5em} ; \hspace{.5em}#2 \right\}}
+\newcommand{\eqdef}{\triangleq}
+\newcommand{\tr}[1]{Tr\left( #1 \right)}
+\newcommand{\pcond}[2]{p(#1 \hspace{-.2em}\mid\hspace{-.2em} #2)}
+\newcommand{\e}[1]{\mathop{\mathbb{E}}\left[#1\right]}
+\newcommand{\conde}[2]{\mathop{\mathbb{E}}\left[#1 \hspace{.2em}\mid\hspace{.2em} #2 \right]}
+\newcommand{\ssemi}{\hspace{.3em};\hspace{.3em}}
+
+
+
+
+
+\newcommand{\iid}{i.i.d }
+\newcommand{\wrt}{w.r.t }
+
+% Commandes informatique
+\newcommand{\pfun}[1]{{\textbf{\texttt{#1}}}}
+
+\newcommand{\ipart}[1]{\vspace{0.5em}\textbf{#1}\vspace{0.5em}}
+
+
+
+\pagenumbering{arabic}
+
+\title{\textsc{Reinforcement learning - MVA 2017/2018 \\ \emph{Internship report}} }
+\author{Rémi Lespinet}
+\date{}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{fancy}
+
+
+
+\section{Problem presentation}
+
+\subsection{Context}
+
+\subsection{Data presentation}
+
+
+
+
+
+\section{Weighted batched update}
+
+Let
+\begin{displaymath}
+  \xi_k^l = \sum_{i = k}^{l} p_i
+\end{displaymath}
+
+\subsection{Mean}
+
+\begin{displaymath}
+  \mu_{n + k} = \dfrac{\sum_{i = 1}^{n+k} p_i x_i}{\sum_{i = 1}^{n+k} p_i}
+    % \mu_{n + k} = \dfrac{\sum\limits_{i = 1}^{n+k} p_i x_i}{\sum\limits_{i = 1}^{n+k} p_i}
+\end{displaymath}
+
+% \begin{align*}
+%   \mu_{n + k}
+%   &= \dfrac{1}{\sum_{i = 1}^{n+k} p_i}
+%     \left[
+%     \sum_{i = 1}^{n} p_i x_i +
+%     \sum_{i = n+1}^{n+k} p_i x_i
+%     \right] \\
+% \end{align*}
+
+% \begin{align*}
+%   \mu_{n + k} - \mu_{n}
+%   &= \dfrac{1}{\xi_{1}^{n+k}}
+%     \left[
+%     \sum_{i = 1}^{n} p_i x_i +
+%     \sum_{i = n+1}^{n+k} p_i x_i
+%     \right] -
+%     \dfrac{1}{\xi_{1}^{n}}
+%     \sum_{i = 1}^{n} p_i x_i \\
+% \end{align*}
+
+
+\begin{align*}
+  \mu_{n + k}
+  &=
+    \mu_{n + k} = \dfrac{1}{\xi_1^{n+k}} \sum_{i = 1}^{n+k} p_i x_i \\
+  &=
+    \dfrac{1}{\xi_{1}^{n+k}}
+    \left[
+    \sum_{i = 1}^{n} p_i x_i +
+    \sum_{i = n+1}^{n+k} p_i x_i
+    \right] \\
+  &= \dfrac{\xi_{1}^{n}}{\xi_{1}^{n+k}}
+    \mu_n +
+    \dfrac{1}{\xi_{1}^{n+k}}
+    \sum_{i = n+1}^{n+k} p_i x_i \\
+  &= \dfrac{\xi_{1}^{n+k} - \xi_{n+1}^{n+k}}{\xi_{1}^{n+k}}
+    \mu_n +
+    \dfrac{1}{\xi_{1}^{n+k}}
+    \sum_{i = n+1}^{n+k} p_i x_i \\
+  &= \mu_n +
+    \dfrac{1}{\xi_{1}^{n+k}}
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_n) \\
+\end{align*}
+Hence,
+\begin{framed}
+  \begin{displaymath}
+    \mu_{n+k}= \mu_n +
+    \dfrac{\sum_{i = n+1}^{n+k} p_i (x_i - \mu_n)}{\sum_{1}^{n+k}p_i}
+  \end{displaymath}
+\end{framed}
+
+
+% \begin{align*}
+%   \mu_{n + k}
+%   &= \dfrac{1}{\sum_{1}^{n+k}p_i}
+%     \left[
+%     \sum_{i = 1}^{n} p_i x_i +
+%     \sum_{i = n+1}^{n+k} p_i x_i
+%     \right] \\
+%   &= \dfrac{\sum_{1}^{n}p_i}{\sum_{1}^{n+k}p_i}
+%     \mu_n +
+%     \dfrac{1}{\sum_{1}^{n+k}p_i}
+%     \sum_{i = n+1}^{n+k} p_i x_i \\
+%   &= \dfrac{\sum_{1}^{n+k}p_i - \sum_{n+1}^{n+k}p_i}{\sum_{1}^{n+k}p_i}
+%     \mu_n +
+%     \dfrac{1}{\sum_{1}^{n+k}p_i}
+%     \sum_{i = n+1}^{n+k} p_i x_i \\
+%   &= \mu_n +
+%     \dfrac{1}{\sum_{1}^{n+k}p_i}
+%     \sum_{i = n+1}^{n+k} p_i (x_i - \mu_n) \\
+% \end{align*}
+
+
+% \begin{align*}
+%   \mu_{n + k}
+%   &= \dfrac{1}{\pi_{n+k}}
+%     \left[
+%     \sum_{i = 1}^{n} p_i x_i +
+%     \sum_{i = n+1}^{n+k} p_i x_i
+%     \right] \\
+%   &= \dfrac{\pi_{n}}{\pi_{n+k}}
+%     \mu_n +
+%     \dfrac{1}{\pi_{n+k}}
+%     \sum_{i = n+1}^{n+k} p_i x_i \\
+%   &= \dfrac{\pi_{n+k} - \sum_{n+1}^{n+k}p_i}{\pi_{n+k}}
+%     \mu_n +
+%     \dfrac{1}{\pi_{n+k}}
+%     \sum_{i = n+1}^{n+k} p_i x_i \\
+%   &= \mu_n +
+%     \dfrac{1}{\pi_{n+k}}
+%     \sum_{i = n+1}^{n+k} p_i (x_i - \mu_n) \\
+% \end{align*}
+
+
+\subsection{Covariance}
+
+\begin{align*}
+  R_n^{n+k}
+  &=
+    \xi_{1}^{n + k} \Sigma_{n + k} - \xi_{1}^{n} \Sigma_{n}\\
+  &=
+    \sum_{i = 1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T -
+    \sum_{i = 1}^{n} p_i (x_i - \mu_{n}) (x_i - \mu_{n})^T \\
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+    \sum_{i = 1}^{n} p_i
+    \left[
+    (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T -
+    (x_i - \mu_{n}) (x_i - \mu_{n})^T
+    \right]
+\end{align*}
+For all $i$, we have
+\begin{align*}
+  C_{n}^{n+k}(i)
+  &=
+    (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T -
+    (x_i - \mu_{n}) (x_i - \mu_{n})^T \\[1em]
+  &=
+    (x_i - \mu_{n} + \mu_{n} - \mu_{n+k}) (x_i - \mu_{n} + \mu_{n} - \mu_{n+k})^T -
+    (x_i - \mu_{n}) (x_i - \mu_{n})^T \\[1em]
+  &=
+    (x_i - \mu_{n} ) (\mu_{n} - \mu_{n+k})^T + (\mu_{n} - \mu_{n+k}) (x_i - \mu_{n})^T + (\mu_{n} - \mu_{n+k}) (\mu_{n} - \mu_{n+k})^T
+\end{align*}
+Since
+\begin{displaymath}
+  \sum_{i=1}^{n} p_i (x_i - \mu_n) =  0
+\end{displaymath}
+We have
+\begin{align*}
+  \sum_{i=1}^{n} p_i C_n^{n+k}(i)
+  &=
+    \sum_{i=1}^{n} p_i  (\mu_{n} - \mu_{n+k}) (\mu_{n} - \mu_{n+k})^T
+\end{align*}
+Hence
+\begin{align*}
+  R_n^{n+k}
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+    \sum_{i=1}^{n} p_i
+    (\mu_{n} - \mu_{n+k}) (\mu_{n} - \mu_{n+k})^T \\
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+    \left(\sum_{i=1}^{n} p_i \mu_{n} - \sum_{i=1}^{n} p_i \mu_{n+k} \right)
+     (\mu_{n} - \mu_{n+k})^T \\
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+    \left(\sum_{i=1}^{n} p_i \mu_{n} - \sum_{i=1}^{n+k} p_i \mu_{n+k} + \sum_{i=n+1}^{n+k} p_i \mu_{n+k} \right)
+     (\mu_{n} - \mu_{n+k})^T \\
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+    \left(\sum_{i=1}^{n} p_i x_i - \sum_{i=1}^{n+k} p_i x_i + \sum_{i=n+1}^{n+k} p_i \mu_{n+k} \right)
+     (\mu_{n} - \mu_{n+k})^T \\
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+    \left(
+    \sum_{i=n+1}^{n+k} p_i \mu_{n+k} -
+    \sum_{i=n+1}^{n+k} p_i x_i
+    \right)
+     (\mu_{n} - \mu_{n+k})^T \\
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (\mu_{n+k} - \mu_{n})^T \\
+  &=
+    \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n})^T \\
+\end{align*}
+Finally,
+\begin{framed}
+\begin{displaymath}
+  \xi_{1}^{n + k} \Sigma_{n + k}
+  = \xi_{1}^{n} \Sigma_{n} +
+  \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n})^T \\
+\end{displaymath}
+% \begin{displaymath}
+%   \xi_{1}^{n + k} \Sigma_{n + k}
+%   = \xi_{1}^{n} \Sigma_{n} +
+%     \sum_{i = n+1}^{n+k} p_i (x_i - \mu_{n+k}) (x_i - \mu_{n+k})^T +
+%     \xi_{1}^{n}
+%     (\mu_{n} - \mu_{n+k}) (\mu_{n} - \mu_{n+k})^T \\
+% \end{displaymath}
+\end{framed}
+
+
+% \begin{align*}
+%   \mu_{n + k}
+%   &= \dfrac{1}{\xi_{1}^{n+k}}
+%     \left[
+%     \sum_{i = 1}^{n} p_i x_i +
+%     \sum_{i = n+1}^{n+k} p_i x_i
+%     \right] \\
+%   &= \dfrac{\xi_{1}^{n}}{\xi_{1}^{n+k}}
+%     \mu_n +
+%     \dfrac{1}{\xi_{1}^{n+k}}
+%     \sum_{i = n+1}^{n+k} p_i x_i \\
+%   &= \dfrac{\xi_{1}^{n+k} - \xi_{n+1}^{n+k}}{\xi_{1}^{n+k}}
+%     \mu_n +
+%     \dfrac{1}{\xi_{1}^{n+k}}
+%     \sum_{i = n+1}^{n+k} p_i x_i \\
+%   &= \mu_n +
+%     \dfrac{1}{\xi_{1}^{n+k}}
+%     \sum_{i = n+1}^{n+k} p_i (x_i - \mu_n) \\
+    %   \end{align*}
+
+
+
+\section{Semi-supervised HMM with mixed states}
+
+\begin{displaymath}
+  p(y, q) = p(y_0 \dots y_T, q_0 \dots q_T) = p(q_0) \prod_{t = 0}^{T-1} p(q_{t+1} \mid q_t) \prod_{t = 0}^{T} p(y_t \mid q_t)
+\end{displaymath}
+
+\begin{displaymath}
+  \mathcal{L}(\theta \ssemi y, q) = \log{p(y, q \ssemi \theta)} = \log{p(q_0)} + \sum_{t = 0}^{T-1} \log{p(q_{t+1} \mid q_t)} + \sum_{t = 0}^{T} \log{ p(y_t \mid q_t) }
+\end{displaymath}
+
+\begin{displaymath}
+  \mathcal{L}(\theta \ssemi y, q) = \sum_{i = 1}^{M} q_0^i \log{\pi_i} + \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_t^i q_{t+1}^j \log{a_{i,j}} + \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_t^i \log{ p(y_t \mid q_t^i) }
+\end{displaymath}
+
+\begin{displaymath}
+  \mathcal{L}(\theta \ssemi (y_1, q_1) \dots (y_N, q_N) ) = \sum_{n = 1}^N \sum_{i = 1}^{M} q_{n, 0}^i \log{\pi_i} + \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}} + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i) }
+\end{displaymath}
+
+
+% \begin{displaymath}
+%   \mathcal{L}(\theta \ssemi (y_1, q_1) \dots (y_N, q_N) ) = \sum_{n = 1}^N \sum_{i = 1}^{M} q_{n, 0}^i \log{\pi_i} + \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}} + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i) }
+% \end{displaymath}
+
+
+\begin{displaymath}
+  l_{n, t} = \left\{
+    \begin{array}{ll}
+      1 &\text{ if $q_{n, t}$ is observed } \\
+      0 &\text{ otherwise }
+    \end{array}
+    \right.
+\end{displaymath}
+
+
+% \begin{displaymath}
+%   \mathcal{L}(\theta \ssemi (y_1, q_1) \dots (y_N, q_N) )
+%   = \sum_{n = 1}^N \sum_{i = 1}^{M} q_{n, 0}^i \log{\pi_i}
+%   + \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}}
+%   + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i \ssemi \theta_i) }
+% \end{displaymath}
+
+\begin{displaymath}
+  \begin{split}
+    \mathcal{L}(\theta \ssemi (y_1, q_1) \dots (y_N, q_N) )
+    = &\sum_{n = 1}^N \sum_{i = 1}^{M} q_{n, 0}^i \log{\pi_i}
+    + \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}} \\
+    & + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i \ssemi \theta_i) }
+  \end{split}
+\end{displaymath}
+
+
+% \begin{displaymath}
+%   \begin{split}
+%     \mathcal{L}(\theta \ssemi (y_1, q_1) \dots (y_N, q_N) )
+%     & = \sum_{n = 1}^N \sum_{i = 1}^{M} l_{n, 0} q_{n, 0}^i  \log{\pi_i} +
+%     \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} l_{n, t} q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}} \\
+%     & + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} l_{n, t} q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i) } \\
+%     & + \sum_{n = 1}^N \sum_{i = 1}^{M} (1 - l_{n, 0}) q_{n, 0}^i  \log{\pi_i}
+%     \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} (1 - l_{n, t}) q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}}\\
+%     & + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} (1 - l_{n, t}) q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i) }
+%   \end{split}
+% \end{displaymath}
+
+\begin{displaymath}
+  \conde{q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i)}}{y_{n, t}, l_{n, t}} =
+  \left(
+    l_{n, t} \cdot q_{n, t}^i + \overline{l_{n, t}} \cdot p(q_{n, t}^i = 1 \mid y)
+  \right)
+  \log{ p(y_{n, t} \mid q_{n, t}^i \ssemi \theta_i)}
+\end{displaymath}
+
+\begin{displaymath}
+  \begin{split}
+    \conde{ q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}}}{y_{n}, l_{n}}
+    & = l_{n, t} \cdot l_{n, t+1} \cdot q_{n, t}^i \cdot q_{n, t+1}^j \log{a_{i, j}}\\
+    & + l_{n, t} \cdot \overline{l_{n, t+1}} \cdot q_{n, t}^i \cdot p(q_{n, t+1}^j = 1 \mid y_{n}) \log{a_{i, j}} \\
+    & + \overline{l_{n, t}} \cdot l_{n, t+1} \cdot p(q_{n, t}^i = 1 \mid y_{n}) \cdot q_{n, t + 1}^j \log{a_{i, j}} \\
+    & + \overline{l_{n, t}} \cdot \overline{l_{n, t+1}} \cdot p(q_{n, t}^i = 1 \wedge q_{n, t + 1}^j = 1  \mid y_{n}) \log{a_{i, j}} \\
+  \end{split}
+\end{displaymath}
+
+\begin{displaymath}
+  \begin{split}
+    \conde{ q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}}}{y_{n}, l_{n}}
+    & = l_{n, t} \cdot l_{n, t+1} \cdot q_{n, t}^i \cdot q_{n, t+1}^j \log{a_{i, j}}\\
+    & + l_{n, t} \cdot \overline{l_{n, t+1}} \cdot q_{n, t}^i \cdot \gamma_{n, t+1}^j \log{a_{i, j}} \\
+    & + \overline{l_{n, t}} \cdot l_{n, t+1} \cdot \gamma_{n, t}^i \cdot q_{n, t + 1}^j \log{a_{i, j}} \\
+    & + \overline{l_{n, t}} \cdot \overline{l_{n, t+1}} \cdot \xi_{n, t}^{i,j} \log{a_{i, j}} \\
+  \end{split}
+\end{displaymath}
+
+In the algorihtmic point of view, we have four cases, based on our
+knowledge of the current and the next state.
+
+
+
+
+
+% \begin{displaymath}
+%   \begin{split}
+%     \conde{q_{n, t}^i \log{ q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}}}}{y_{n, t}, l_{n, t}}
+%     & = l_{n, t} l_{n, t+1} q_{n, t}^i q_{n, t+1}^j \\
+%     & + l_{n, t} (1 - l_{n, t+1}) q_{n, t}^i p(q_{n, t+1}^j = 1 \mid y) \\
+%     & + (1 - l_{n, t}) l_{n, t+1} p(q_{n, t}^i = 1 \mid y) q_{n, t + 1}^j \\
+%     & + (1 - l_{n, t}) (1 - l_{n, t+1}) p(q_{n, t}^i = 1 \mid y) p(q_{n, t + 1}^j = 1 \mid y) \\
+%   \end{split}
+% \end{displaymath}
+
+
+
+
+
+\section{Semi-supervised HMM with mixed states}
+
+We consider the semi-supervised framework. For each sequence we are
+given observed values $y_0, \dots y_T$, and some of the hidden states
+as well. Let us define $\mathcal{U}$ and $\mathcal{O}$ such that
+$\mathcal{U} \cup \mathcal{O} = \{1, \dots T\}$.
+\begin{displaymath}
+  \mathcal{U} = \set{t \in \{1, \dots T\}}{\text{$q_t$ is not observed}}
+\end{displaymath}
+and
+\begin{displaymath}
+  \mathcal{O} \eqdef \{1, \dots T\} \setminus \mathcal{U} = \set{t \in \{1, \dots T\}}{\text{$q_t$ is observed}}
+\end{displaymath}
+Let us note $\{\tilde{q}_o \ssemi o \in \mathcal{O}\}$ the set of observed
+values from the hidden states. Let us also define
+\begin{displaymath}
+  l_{t} \eqdef \mathbf{1}_\mathcal{O}(t) = \left\{
+    \begin{array}{ll}
+      1 &\text{ if $t \in \mathcal{O}$ }\\
+      0 &\text{ otherwise }
+    \end{array}
+  \right.
+\end{displaymath}
+and
+\begin{displaymath}
+  \tilde{q}_{t} \eqdef \left\{
+    \begin{array}{ll}
+      \tilde{q}_t &\text{ if $t \in \mathcal{O}$ }\\
+      0 &\text{ if $t \in \mathcal{U}$ }\\
+    \end{array}
+  \right.
+\end{displaymath}
+The HMM model is given below
+\begin{displaymath}
+  p(y, q) = p(y_0 \dots y_T, q_0 \dots q_T) = p(q_0) \prod_{t = 0}^{T-1} p(q_{t+1} \mid q_t) \prod_{t = 0}^{T} p(y_t \mid q_t)
+\end{displaymath}
+
+\subsection{Likelihood}
+
+Writing the complete log likelihood gives
+\begin{displaymath}
+  \mathcal{L}(\theta \ssemi y, q) \eqdef \log{p(y, q \ssemi \theta)} = \log{p(q_0)} + \sum_{t = 0}^{T-1} \log{p(q_{t+1} \mid q_t)} + \sum_{t = 0}^{T} \log{ p(y_t \mid q_t \ssemi \theta) }
+\end{displaymath}
+With the one hot encoding notation, we have
+\begin{displaymath}
+  \mathcal{L}(\theta \ssemi y, q)
+  = \sum_{i = 1}^{M} q_0^i \log{\pi_i}
+  + \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_t^i q_{t+1}^j \log{a_{i,j}}
+  + \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_t^i \log{ p(y_t \mid q_t^i \ssemi \theta_i) }
+\end{displaymath}
+We suppose that the emission probability of the HMM is an exponential
+familly distribution. We write it as
+\begin{displaymath}
+  \label{exp-form}
+  p(y_t \mid q_t^i \ssemi \theta_i) = h(y_t) \exp{\left(\theta_i^T T(y_t) - A(\theta_i)\right)}
+\end{displaymath}
+We then have
+\begin{displaymath}
+  \label{log-exp-form}
+  \log{ p(y_t \mid q_t^i \ssemi \theta_i) } = \log{h(y_t)} + \theta_i^T T(y_t) - A(\theta_i)
+\end{displaymath}
+and we can rewrite the previous equation as
+\begin{displaymath}
+  \mathcal{L}(\theta \ssemi y, q)
+  = \sum_{i = 1}^{M} q_0^i \log{\pi_i}
+  + \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_t^i q_{t+1}^j \log{a_{i,j}}
+  + \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_t^i \left( \log{h(y_t)} + \theta_i^T T(y_t) - A(\theta_i)\right)
+\end{displaymath}
+Because we want to maximize the likelihood with respect to the
+parameters $(a_{i,j}, \pi_i, \theta_i)$, we want to maximize the
+following expression
+\begin{displaymath}
+  \sum_{i = 1}^{M} q_0^i \log{\pi_i}
+  + \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_t^i q_{t+1}^j \log{a_{i,j}}
+  + \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_t^i \left(\theta_i^T T(y_t) - A(\theta_i)\right)
+\end{displaymath}
+The sufficient statistics for $a_{i,j}$ is given by
+\begin{displaymath}
+  m_{i, j} \eqdef \sum_{t = 0}^{T-1} q_t^i q_{t+1}^j
+\end{displaymath}
+The maximum likelihood estimate for $a_{i, j}$ is given by
+\begin{displaymath}
+  \hat{a}_{i,j} = \dfrac{
+    m_{i,j}
+  }{
+    \sum_{k = 1}^M m_{i, k}
+  }
+\end{displaymath}
+The sufficient statistics for $\theta_{i}$ is given by
+\begin{displaymath}
+  n_{i, j} \eqdef \sum_{t = 0}^{T-1} q_t^i T(y_t)
+\end{displaymath}
+Hence the maximum likelihood estimate for $\theta_{i, j}$ can be
+recovered from
+\begin{displaymath}
+  \sum_{t = 0}^T q_t^i \grad_{\theta_i}A(\theta_i) = \sum_{t = 0}^T q_t^i T(y_t)
+\end{displaymath}
+
+\textbf{Multivariate gaussian case}
+
+For the multivariate gaussian, we have
+\begin{displaymath}
+  \log{p(y ; \mu, \Sigma)} =
+  - \dfrac{d}{2} \log(2 \pi)
+  - \dfrac{1}{2} \log\det{\Sigma}
+  - \dfrac{1}{2} (y - \mu)^T \Sigma^{-1} (y - \mu)
+\end{displaymath}
+Writing it in the exponential form above \eqref{log-exp-form}
+\begin{displaymath}
+  \log{ p(y \ssemi \theta) } = \log{h(y)} + \theta^T T(y) - A(\theta)
+\end{displaymath}
+We have
+\begin{align*}
+  \log{p(y ; \mu, \Sigma)}
+  & =
+    - \dfrac{d}{2} \log(2 \pi)
+    - \dfrac{1}{2} \log\det{\Sigma}
+    - \dfrac{1}{2} (y - \mu)^T \Sigma^{-1} (y - \mu)
+  \\
+  & =
+    - \dfrac{d}{2} \log(2 \pi)
+    - \dfrac{1}{2} \log\det{\Sigma}
+    - \dfrac{1}{2} y^T \Sigma^{-1} y
+    + \mu^T \Sigma^{-1} y
+    - \dfrac{1}{2} \mu^T \Sigma^{-1} \mu
+  \\
+  & =
+    - \dfrac{d}{2} \log(2 \pi)
+    - \dfrac{1}{2} \log\det{\Sigma}
+    - \dfrac{1}{2} \tr{\Sigma^{-1} y y^T}
+    + \mu^T \Sigma^{-1} y
+    - \dfrac{1}{2} \mu^T \Sigma^{-1} \mu
+  \\
+\end{align*}
+We obtain
+\begin{displaymath}
+  \left\{
+  \begin{array}{rl}
+    \log{h(y)} & = - \dfrac{d}{2} \log(2 \pi) \\[.5em]
+    T(y) & = (y, y y^T) \\[.5em]
+    \theta & = (\mu^T \Sigma^{-1}, \Sigma^{-1}) \\[.5em]
+    A(\theta) &= \dfrac{1}{2} \log\det{\Sigma} + \dfrac{1}{2} \mu^T \Sigma^{-1} \mu \\
+  \end{array}
+  \right.
+\end{displaymath}
+Let us reparametrize the multivariate gaussian using the canonical
+parameters :
+\begin{align*}
+  \eta & =  \Sigma^{-1} \mu \\
+  \Lambda & = \Sigma^{-1}
+\end{align*}
+\begin{displaymath}
+  \left\{
+  \begin{array}{rl}
+    \log{h(y)} & = - \dfrac{d}{2} \log(2 \pi) \\[.5em]
+    T(y) & = (y, y y^T) \\[.5em]
+    \theta & = (\eta, \Lambda) \\[.5em]
+    A(\theta) &= -\dfrac{1}{2} \log\det{\Lambda} - \dfrac{1}{2} \eta^T \Lambda^{-1} \eta \\
+  \end{array}
+  \right.
+\end{displaymath}
+
+
+% \begin{align*}
+%   \log{h(y)} & = - \dfrac{d}{2} \log(2 \pi) \\
+%   T(y) & = (y, y y^T) \\
+%   \theta & = (- \mu^T \Sigma^{-1}, \Sigma^{-1}) \\
+%   A(\theta) &= \dfrac{1}{2} \log\det{\Sigma^{-1}} - \dfrac{1}{2} \mu^T \Sigma^{-1} \mu
+% \end{align*}
+
+
+
+
+
+
+
+% \begin{displaymath}
+%   \mathcal{L}(\theta \ssemi (y_1, q_1) \dots (y_N, q_N) ) = \sum_{n = 1}^N \sum_{i = 1}^{M} q_{n, 0}^i \log{\pi_i} + \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}} + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i) }
+% \end{displaymath}
+
+
+% \begin{displaymath}
+%   l_{n, t} = \left\{
+%     \begin{array}{ll}
+%       1 &\text{ if $q_{n, t}$ is observed } \\
+%       0 &\text{ otherwise }
+%     \end{array}
+%     \right.
+% \end{displaymath}
+
+
+% \begin{displaymath}
+%   \begin{split}
+%     \mathcal{L}(\theta \ssemi (y_1, q_1) \dots (y_N, q_N) )
+%     = &\sum_{n = 1}^N \sum_{i = 1}^{M} q_{n, 0}^i \log{\pi_i}
+%     + \sum_{n = 1}^N \sum_{t = 0}^{T-1} \sum_{i = 1}^{M} \sum_{j = 1}^{M} q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}} \\
+%     & + \sum_{n = 1}^N \sum_{t = 0}^{T} \sum_{i = 1}^{M} q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i \ssemi \theta_i) }
+%   \end{split}
+% \end{displaymath}
+
+% \begin{displaymath}
+%   \conde{q_{n, t}^i \log{ p(y_{n, t} \mid q_{n, t}^i)}}{y_{n, t}, l_{n, t}} =
+%   \left(
+%     l_{n, t} \cdot q_{n, t}^i + \overline{l_{n, t}} \cdot p(q_{n, t}^i = 1 \mid y)
+%   \right)
+%   \log{ p(y_{n, t} \mid q_{n, t}^i \ssemi \theta_i)}
+% \end{displaymath}
+
+% \begin{displaymath}
+%   \begin{split}
+%     \conde{ q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}}}{y_{n}, l_{n}}
+%     & = l_{n, t} \cdot l_{n, t+1} \cdot q_{n, t}^i \cdot q_{n, t+1}^j \log{a_{i, j}}\\
+%     & + l_{n, t} \cdot \overline{l_{n, t+1}} \cdot q_{n, t}^i \cdot p(q_{n, t+1}^j = 1 \mid y_{n}) \log{a_{i, j}} \\
+%     & + \overline{l_{n, t}} \cdot l_{n, t+1} \cdot p(q_{n, t}^i = 1 \mid y_{n}) \cdot q_{n, t + 1}^j \log{a_{i, j}} \\
+%     & + \overline{l_{n, t}} \cdot \overline{l_{n, t+1}} \cdot p(q_{n, t}^i = 1 \wedge q_{n, t + 1}^j = 1  \mid y_{n}) \log{a_{i, j}} \\
+%   \end{split}
+% \end{displaymath}
+
+% \begin{displaymath}
+%   \begin{split}
+%     \conde{ q_{n, t}^i q_{n, t+1}^j \log{a_{i,j}}}{y_{n}, l_{n}}
+%     & = l_{n, t} \cdot l_{n, t+1} \cdot q_{n, t}^i \cdot q_{n, t+1}^j \log{a_{i, j}}\\
+%     & + l_{n, t} \cdot \overline{l_{n, t+1}} \cdot q_{n, t}^i \cdot \gamma_{n, t+1}^j \log{a_{i, j}} \\
+%     & + \overline{l_{n, t}} \cdot l_{n, t+1} \cdot \gamma_{n, t}^i \cdot q_{n, t + 1}^j \log{a_{i, j}} \\
+%     & + \overline{l_{n, t}} \cdot \overline{l_{n, t+1}} \cdot \xi_{n, t}^{i,j} \log{a_{i, j}} \\
+%   \end{split}
+% \end{displaymath}
+
+\subsection{Propagation belief}
+
+We define
+\begin{displaymath}
+  \alpha(q_t) \eqdef p(q_{t}, y_0, \dots, y_{t+1})
+\end{displaymath}
+and
+\begin{displaymath}
+  \beta(q_{t}) \eqdef p(y_{t+1}, \dots y_T \mid q_t)
+\end{displaymath}
+By applying the sum product algorithm, we obtain We have the following
+reccurence relations in the observed case
+\begin{displaymath}
+  \alpha(q_{t + 1}) = \sum_{q_t} \alpha(q_t) p(y_{t+1} \mid q_{t+1}) p(q_{t+1} \mid q_t) \delta(q_t, \overline{q_t})
+\end{displaymath}
+and
+\begin{displaymath}
+  \beta(q_{t}) = \sum_{q_{t+1}} \beta(q_{t+1}) p(y_{t+1} \mid q_{t+1}) p(q_{t+1} \mid q_t) \delta(q_{t+1}, \overline{q_{t+1}})
+\end{displaymath}
+Which gives the following update rules
+\begin{displaymath}
+  \alpha(q_{t + 1}) = \left\{
+    \begin{array}{ll}
+      \sum_{q_t} \alpha(q_t) p(y_{t+1} \mid q_{t+1}) p(q_{t+1} \mid q_t)
+      & \text{ if $q_t$ is not observed} \\[0.5em]
+      \alpha(\overline{q_t}) p(y_{t+1} \mid q_{t+1}) p(q_{t+1} \mid \overline{q_t})
+      & \text{ if $q_t$ is observed} \\
+    \end{array}
+  \right.
+\end{displaymath}
+  and
+\begin{displaymath}
+  \beta(q_{t}) = \left\{
+    \begin{array}{ll}
+      \sum_{q_{t+1}} \beta(q_{t+1}) p(y_{t+1} \mid q_{t+1}) p(q_{t+1} \mid q_t)
+      & \text{ if $q_{t+1}$ is not observed} \\[0.5em]
+      \beta(\overline{q_{t+1}}) p(y_{t+1} \mid \overline{q_{t+1}}) p(\overline{q_{t+1}} \mid q_t)
+      & \text{ if $q_{t+1}$ is observed} \\[0.5em]
+    \end{array}
+    \right.
+\end{displaymath}
+
+
+
+\begin{comment}
+\begin{align*}
+  \gamma(q_t)
+  & \eqdef p(q_t \mid y_0, \dots, y_T, l_0, \dots, l_T) \\
+  & = \sum_{q_{t+1}} p(q_t, q_{t+1} \mid y_0, \dots, y_T, l_0, \dots, l_T) \\
+  & = \sum_{q_{t+1}} p(q_t \mid q_{t+1}, y_0, \dots, y_T, l_0, \dots, l_T) p(q_{t+1} \mid y_0, \dots, y_T, l_0, \dots, l_T) \\
+  & = \sum_{q_{t+1}} p(q_t \mid q_{t+1}, y_0, \dots, y_T, l_0, \dots, l_T) \gamma_{t+1} \\
+  & = \sum_{q_{t+1}} \dfrac{
+    p(q_t, q_{t+1}, y_0, \dots, y_T, l_0, \dots, l_T)
+    }{
+    \sum_{q_t} p(q_t, q_{t+1}, y_0, \dots, y_T, l_0, \dots, l_T)
+    } \gamma_{t+1} \\
+  & = \sum_{q_{t+1}} \dfrac{
+    p(q_{t+1} \mid q_t) p(q_t, y_0, \dots, y_T, l_0, \dots, l_T)
+    }{
+    \sum_{q_t} p(q_{t+1} \mid q_t) p(q_t, y_0, \dots, y_T, l_0, \dots, l_T)
+    } \gamma_{t+1} \\
+  & = \sum_{q_{t+1}} \dfrac{
+    a_{q_t, {q_{t+1}}} \alpha(q_t)
+    }{
+    \sum_{q_t} a_{q_t, {q_{t+1}}} \alpha(q_t)
+    } \gamma_{t+1}
+\end{align*}
+
+
+\begin{align*}
+  \alpha(q_{t+1})
+  & \eqdef p(q_{t+1},  y_0, \dots, y_T, l_0, \dots, l_T) \\
+  & = \sum_{q_t} p(q_t, q_{t+1}, y_0, \dots, y_T, l_0, \dots, l_T) \\
+  & = \sum_{q_t} p(q_{t+1} \mid q_t, y_0, \dots, y_T, l_0, \dots, l_T) p(q_t, y_0, \dots, y_T, l_0, \dots, l_T) \\
+  & = \sum_{q_t} p(q_{t+1} \mid q_t) p(q_t, y_0, \dots, y_T, l_0, \dots, l_T) \\
+\end{align*}
+\end{comment}
+
+
+
+% \begin{align*}
+%   \alpha(q_{t + 1})
+%   & \eqdef p(q_{t+1}, y_0, \dots, y_{t+1}) \\
+%   & = \sum_{q_t} \alpha(q_t) p(y_{t+1} \mid q_{t+1}) p(q_{t+1} \mid q_t) \delta(q_t, \bar{q_t})
+% \end{align*}
+
+% \begin{align*}
+%   \beta(q_{t})
+%   & \eqdef p(y_{t+1}, \dots y_T \mid q_t) \\
+%   & = \sum_{q_{t+1}} \beta(q_{t+1}) p(y_{t+1} \mid q_{t+1}) p(q_{t+1} \mid q_t) \delta(q_{t+1}, \bar{q_{t+1}})
+      %   \end{align*}
+
+\subsection{Emission distributions}
+
+\begin{displaymath}
+  p(y ; \mu, \Sigma) = \dfrac{1}{\sqrt{(2 \pi)^d \det{\Sigma}}}
+  \exp{
+    \left(
+    -\dfrac{1}{2}
+      (y - \mu)^T \Sigma^{-1} (y - \mu)
+    \right)
+  }
+\end{displaymath}
+
+\begin{displaymath}
+  \log{p(y ; \mu, \Sigma)} =
+  - \dfrac{d}{2} \log(2 \pi)
+  - \dfrac{1}{2} \log\det{\Sigma}
+  - \dfrac{1}{2} (y - \mu)^T \Sigma^{-1} (y - \mu)
+\end{displaymath}
+
+
+
+
+
+
+\newpage
+\bibliography{references}
+
+
+\end{document}
+
+%% \begin{figure}[p]
+%%   \centering
+%%   \begin{subfigure}[t]{0.40\textwidth}
+%%     \centering
+%%     \includegraphics[width=\textwidth]{LDA_classificationA_train.pdf}
+%%     \caption{Training observations A ($150$ points)}\label{fig:LDA-A-train}
+%%   \end{subfigure}
+%%   \quad
+%%   \begin{subfigure}[t]{0.40\textwidth}
+%%     \centering
+%%     \includegraphics[width=\textwidth]{LDA_classificationA_test.pdf}
+%%     \caption{Test observations A ($1500$ points)}\label{fig:LDA-A-test}
+%%   \end{subfigure}
+%%   \vskip\baselineskip
+%%   \begin{subfigure}[t]{0.40\textwidth}
+%%     \centering
+%%     \includegraphics[width=\textwidth]{LDA_classificationB_train.pdf}
+%%     \caption{Training observations B ($150$ points)}\label{fig:LDA-B-train}
+%%   \end{subfigure}
+%%   \quad
+%%   \begin{subfigure}[t]{0.40\textwidth}
+%%     \centering
+%%     \includegraphics[width=\textwidth]{LDA_classificationB_test.pdf}
+%%     \caption{Test observations B ($1500$ points)}\label{fig:LDA-B-test}
+%%   \end{subfigure}
+%%   \vskip\baselineskip
+%%   \begin{subfigure}[t]{0.40\textwidth}
+%%     \centering
+%%     \includegraphics[width=\textwidth]{LDA_classificationC_train.pdf}
+%%     \caption{Training observations C ($150$ points)}\label{fig:LDA-C-train}
+%%   \end{subfigure}
+%%   \quad
+%%   \begin{subfigure}[t]{0.40\textwidth}
+%%     \centering
+%%     \includegraphics[width=\textwidth]{LDA_classificationC_test.pdf}
+%%     \caption{Test observations C ($1500$ points)}\label{fig:LDA-C-test}
+%%   \end{subfigure}
+%%   \caption{Sample data and decision boundary representation for the LDA classifier on the three files}\label{fig:LDA}
+%% \end{figure}
+
+
+
+
+  % \begin{table}[h!]
+  %   \centering
+  %   \begin{tabular}{|c|c|c|c||c|c|c|}
+  %     \hline
+  %     & \multicolumn{3}{c||}{\textbf{a0}} & \multicolumn{3}{c|}{\textbf{a1}}\\
+  %     \hline
+  %     & s0 & s1 & s2 & s0 & s1 & s2 \\
+  %     \hline
+  %     s0 & 0.45 & 0.00 & 0.55 & 0.00 & 0.00 & 1.00 \\
+  %     s1 & 0.00 & 0.00 & 1.00 & 0.50 & 0.40 & 0.10 \\
+  %     s2 & 0.60 & 0.00 & 0.40 & 0.00 & 0.90 & 0.10 \\
+  %     \hline
+  %   \end{tabular}
+  %   \captionof{table}{Representation of the transition table
+  %     corresponding to the graph} \label{tab:transition-table}
+  % \end{table}
+
+  % \begin{figure}[h]
+  %   \centering
+  %   \includegraphics[width=0.7\textwidth]{VI_convergence}
+  %   \caption{Convergence of the value iteration algorithm}\label{fig:VI-convergence}
+  % \end{figure}
+
+
+
+    % \begin{tikzpicture}[baseline=(current bounding box.center),
+    %   decoration=brace,
+    %   large/.style={font=\large}]
+    %   \matrix (M)[matrix of math nodes, nodes in empty cells,
+    %   left delimiter={[}, right delimiter={]},
+    %   column sep={0.6em,between origins},
+    %   row sep={2.0em,between origins}
+    %   ]{ &         & \\
+    %     & y_t     & \\
+    %     &         & \\
+    %     & r_{t+1} & \\
+    %   };
+    %   \draw(M-3-1.west)--(M-3-3.east);
+    %   % \draw(M-4-1.mid)--(M-4-9.mid);
+    %   % \node[large] at (M-2-7){$0$};
+    %   % \node[large] at (M-7-2){$0$};
+    %   % \node[large] at (M-7-7){$0$};
+    %   % \draw[decorate,transform canvas={xshift=0.3em, yshift=0.8em},thick] (M-1-1.mid west) -- node[above=2pt]{$n$}(M-1-3.mid east);
+    %   % \draw[decorate,transform canvas={yshift=0.8em},thick] (M-1-1.west) -- node[above=1pt]{$d$}(M-1-3.east);
+    %   % \draw[decorate,transform canvas={xshift=2.2em},thick] (M-7-5.north) -- node[right=1pt]{$n$}(M-11-5.south);
+    %   % \draw[decorate,thick] (M-9-9.north) -- node[below=2pt]{$n$}(M-9-5.north);
+    % \end{tikzpicture}
