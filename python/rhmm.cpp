@@ -54,11 +54,22 @@ PyMODINIT_FUNC PyInit_rhmm(void) {
     if (PyType_Ready(&PyType_Distribution) < 0)
         return NULL;
 
+    if (PyType_Ready(&PyType_Multinomial) < 0)
+        return NULL;
+
+    if (PyType_Ready(&PyType_MultivariateGaussian) < 0)
+        return NULL;
+
+
     Py_INCREF(&PyType_HMM);
     Py_INCREF(&PyType_Distribution);
+    Py_INCREF(&PyType_Multinomial);
+    Py_INCREF(&PyType_MultivariateGaussian);
 
     PyModule_AddObject(m, "HMM", (PyObject *) &PyType_HMM);
     PyModule_AddObject(m, "Distribution", (PyObject *) &PyType_Distribution);
+    PyModule_AddObject(m, "Multinomial", (PyObject *) &PyType_Multinomial);
+    PyModule_AddObject(m, "MultivariateGaussian", (PyObject *) &PyType_MultivariateGaussian);
 
     return m;
 }

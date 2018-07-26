@@ -24,25 +24,33 @@ template<typename dtype>
 struct MultivariateGaussian : Distribution<dtype> {
 
     VectorX<dtype> mean;
-    MatrixX<dtype> covariance;
+    MatrixX<dtype> cov;
 
-    MultivariateGaussian(const MatrixX<dtype> &mean, const MatrixX<dtype> &covariance)
+    MultivariateGaussian(const MatrixX<dtype> &mean, const MatrixX<dtype> &cov)
         : mean(mean)
-        , covariance(covariance)
+        , cov(cov)
         {}
 
-    MultivariateGaussian(MatrixX<dtype> &&mean, MatrixX<dtype> &&covariance)
+    MultivariateGaussian(MatrixX<dtype> &&mean, MatrixX<dtype> &&cov)
         : mean(mean)
-        , covariance(covariance)
+        , cov(cov)
         {}
 
     virtual ~MultivariateGaussian() {
     }
 
     virtual dtype logp(const dtype *data, uint len) {
-        auto x = Map< VectorX<dtype> >(data, len) - mean;
+        // TODO(RL) ....
+        VectorX<dtype> x(len);
+        for (uint i = 0; i < len; i++) {
+            x[i] = data[i] - mean[i];
+        }
+        // auto x = Map< VectorX<dtype> >(data, len) - mean;
 
-        return - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * get_det_covariance() -  0.5 * x * (get_inv_covariance() * x);
+        auto q = x * (get_inv_cov() * x);
+        assert(q.size() == 1);
+        return - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * get_det_cov() - 0.5 * q(0, 0);
+        // return - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * get_det_cov() -  0.5 * x * (get_inv_cov() * x);
     }
 
     virtual void update_params(const dtype *data, const dtype *gamma, uint T) {
@@ -53,17 +61,17 @@ private:
 
     // TODO(RL) This is really inefficient, cache the results as soon as it works !!
 
-    // MatrixX<dtype> inv_covariance;
-    // dtype inv_covariance_det;
-    // bool inv_covariance_validity;
+    // MatrixX<dtype> inv_cov;
+    // dtype inv_cov_det;
+    // bool inv_cov_validity;
 
-    MatrixX<dtype> get_inv_covariance() {
-        const uint D = covariance.rows();
-        return covariance.llt().solve(MatrixX<dtype>::Identity(D, D));
+    MatrixX<dtype> get_inv_cov() {
+        const uint D = cov.rows();
+        return cov.llt().solve(MatrixX<dtype>::Identity(D, D));
     }
 
-    MatrixX<dtype> get_det_covariance() {
-        return covariance.det();
+    dtype get_det_cov() {
+        return cov.determinant();
     }
 
 

@@ -1,4 +1,5 @@
 #include "hmm_class.hpp"
+#include "distribution_class.hpp"
 
 #include <Python.h>
 #include "structmember.h"
@@ -43,6 +44,7 @@ static PyObject* hmm_get_states(PyObject_HMM *self, void *closure) {
         return NULL;
     }
 
+
     return NULL;
 }
 
@@ -56,6 +58,12 @@ static PyObject* hmm_get_transitions(PyObject_HMM *self, void *closure) {
     if (hmm == NULL) {
         return NULL;
     }
+
+    MatrixX<float> &transition = hmm->transition;
+
+    npy_intp dims[] = {transition.rows(), transition.cols()};
+
+    return PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, transition.data());
 
     // MatrixX<float> *Sigma = hmm->Sigma;
     // if (Sigma == NULL) {
@@ -183,12 +191,31 @@ static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwa
         Py_RETURN_NONE;
     }
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", keywords, &state_obj)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &state_obj)) {
         PyErr_SetString(PyExc_ValueError, "Argument parsing failed");
         Py_RETURN_NONE;
     }
 
-    return NULL;
+    if (state_obj == NULL) {
+        PyErr_SetString(PyExc_ValueError, "State being added is invalid");
+        Py_RETURN_NONE;
+    }
+
+    if (!PyObject_TypeCheck(state_obj, &PyType_Distribution)) {
+        PyErr_SetString(PyExc_ValueError, "Argument is not a valid distribution");
+        Py_RETURN_NONE;
+    }
+
+    Distribution<float> *distribution = ((PyObject_Distribution*) state_obj)->distribution;
+
+    if (distribution == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Argument distribution has not been properly initialized");
+        Py_RETURN_NONE;
+    }
+
+    hmm->add_state(distribution);
+
+    Py_RETURN_NONE;
 
 }
 
@@ -427,6 +454,8 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
     //               << sequences[i].cols
     //               << std::endl;
     // }
+
+    hmm->fit(sequences.data(), sequences.size());
 
 
     float* data_buffer = new float[all_data.size()];
