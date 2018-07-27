@@ -2,11 +2,12 @@
 
 #include <Python.h>
 
+#include "ftype.hpp"
 #include "distribution.hpp"
 
 struct PyObject_Distribution {
     PyObject_HEAD;
-    Distribution<float> *distribution;
+    Distribution<ftype> *distribution;
 };
 
 PyTypeObject PyType_Distribution_class();

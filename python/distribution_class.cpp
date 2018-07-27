@@ -166,7 +166,7 @@ static PyObject *PyObject_Multinomial_new(PyTypeObject *type, PyObject *args, Py
         Py_RETURN_NONE;
     }
 
-    PyArrayObject* probs_array = (PyArrayObject*) PyArray_FROMANY(obj_probs, NPY_FLOAT, 1, 1,
+    PyArrayObject* probs_array = (PyArrayObject*) PyArray_FROMANY(obj_probs, NPY_FTYPE, 1, 1,
                                                                   NPY_ARRAY_FORCECAST |
                                                                   NPY_ARRAY_C_CONTIGUOUS |
                                                                   NPY_ARRAY_ALIGNED);
@@ -180,15 +180,15 @@ static PyObject *PyObject_Multinomial_new(PyTypeObject *type, PyObject *args, Py
 
     uint K = PyArray_DIM(probs_array, 0);
 
-    float *probs_array_ptr = (float*) PyArray_DATA(probs_array);
+    ftype *probs_array_ptr = (ftype*) PyArray_DATA(probs_array);
     if (probs_array_ptr == NULL) {
         PyErr_SetString(PyExc_TypeError, "Failed to recover array data");
         Py_RETURN_NONE;
     }
 
-    VectorX<float> probs = Map< VectorX<float> >(probs_array_ptr, K);
+    VectorX<ftype> probs = Map< VectorX<ftype> >(probs_array_ptr, K);
 
-    Distribution<float> *distribution = new Multinomial<float>(probs);
+    Distribution<ftype> *distribution = new Multinomial<ftype>(probs);
     if (distribution == NULL) {
         PyErr_SetString(PyExc_TypeError, "Allocation failed");
         Py_RETURN_NONE;
@@ -211,16 +211,16 @@ static PyObject* multinomial_get_probs(PyObject_Multinomial *self, void *closure
         return NULL;
     }
 
-    Multinomial<float> *distribution = (Multinomial<float> *) self->distribution;
+    Multinomial<ftype> *distribution = (Multinomial<ftype> *) self->distribution;
     if (distribution == NULL) {
         return NULL;
     }
 
-    VectorX<float> &probs = distribution->log_probs;
+    VectorX<ftype> &probs = distribution->log_probs;
 
     npy_intp dims[] = {probs.size()};
 
-    return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT, probs.data());
+    return PyArray_SimpleNewFromData(1, dims, NPY_FTYPE, probs.data());
 
 }
 
@@ -301,7 +301,7 @@ static PyObject *PyObject_MultivariateGaussian_new(PyTypeObject *type, PyObject 
         Py_RETURN_NONE;
     }
 
-    PyArrayObject* mean_array = (PyArrayObject*) PyArray_FROMANY(obj_mean, NPY_FLOAT, 1, 1,
+    PyArrayObject* mean_array = (PyArrayObject*) PyArray_FROMANY(obj_mean, NPY_FTYPE, 1, 1,
                                                                  NPY_ARRAY_FORCECAST |
                                                                  NPY_ARRAY_C_CONTIGUOUS |
                                                                  NPY_ARRAY_ALIGNED);
@@ -316,7 +316,7 @@ static PyObject *PyObject_MultivariateGaussian_new(PyTypeObject *type, PyObject 
 
     SCOPE_DECREF(mean_array);
 
-    PyArrayObject* cov_array = (PyArrayObject*) PyArray_FROMANY(obj_cov, NPY_FLOAT, 2, 2,
+    PyArrayObject* cov_array = (PyArrayObject*) PyArray_FROMANY(obj_cov, NPY_FTYPE, 2, 2,
                                                                 NPY_ARRAY_FORCECAST |
                                                                 NPY_ARRAY_C_CONTIGUOUS |
                                                                 NPY_ARRAY_ALIGNED);
@@ -333,24 +333,24 @@ static PyObject *PyObject_MultivariateGaussian_new(PyTypeObject *type, PyObject 
         Py_RETURN_NONE;
     }
 
-    float *mean_array_ptr = (float*) PyArray_DATA(mean_array);
+    ftype *mean_array_ptr = (ftype*) PyArray_DATA(mean_array);
     if (mean_array_ptr == NULL) {
         PyErr_SetString(PyExc_TypeError, "Failed to recover mean array data");
         Py_RETURN_NONE;
     }
 
-    VectorX<float> mean = Map< VectorX<float> >(mean_array_ptr, D);
+    VectorX<ftype> mean = Map< VectorX<ftype> >(mean_array_ptr, D);
 
-    float *cov_array_ptr = (float*) PyArray_DATA(cov_array);
+    ftype *cov_array_ptr = (ftype*) PyArray_DATA(cov_array);
     if (cov_array_ptr == NULL) {
         PyErr_SetString(PyExc_TypeError, "Failed to recover covariance array data");
         Py_RETURN_NONE;
     }
 
-    MatrixX<float> cov = Map< MatrixX<float> >(cov_array_ptr, D, D);
+    MatrixX<ftype> cov = Map< MatrixX<ftype> >(cov_array_ptr, D, D);
 
 
-    Distribution<float> *distribution = new MultivariateGaussian<float>(mean, cov);
+    Distribution<ftype> *distribution = new MultivariateGaussian<ftype>(mean, cov);
     if (distribution == NULL) {
         PyErr_SetString(PyExc_TypeError, "Allocation failed");
         Py_RETURN_NONE;
@@ -373,16 +373,16 @@ static PyObject* multivariate_gaussian_get_mean(PyObject_MultivariateGaussian *s
         return NULL;
     }
 
-    MultivariateGaussian<float> *distribution = (MultivariateGaussian<float> *) self->distribution;
+    MultivariateGaussian<ftype> *distribution = (MultivariateGaussian<ftype> *) self->distribution;
     if (distribution == NULL) {
         return NULL;
     }
 
-    VectorX<float> &mean = distribution->mean;
+    VectorX<ftype> &mean = distribution->mean;
 
     npy_intp dims[] = {mean.size()};
 
-    return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT, mean.data());
+    return PyArray_SimpleNewFromData(1, dims, NPY_FTYPE, mean.data());
 
 }
 
@@ -392,15 +392,15 @@ static PyObject* multivariate_gaussian_get_cov(PyObject_MultivariateGaussian *se
         return NULL;
     }
 
-    MultivariateGaussian<float> *distribution = (MultivariateGaussian<float> *) self->distribution;
+    MultivariateGaussian<ftype> *distribution = (MultivariateGaussian<ftype> *) self->distribution;
     if (distribution == NULL) {
         return NULL;
     }
 
-    MatrixX<float> &cov = distribution->cov;
+    MatrixX<ftype> &cov = distribution->cov;
 
     npy_intp dims[] = {cov.rows(), cov.cols()};
 
-    return PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, cov.data());
+    return PyArray_SimpleNewFromData(2, dims, NPY_FTYPE, cov.data());
 
 }

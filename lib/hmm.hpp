@@ -25,14 +25,13 @@ struct Sequence {
         return &data[t * cols];
     }
 
-
 };
 
 template<typename dtype>
 struct HMM {
 
     std::vector< Distribution<dtype> *> states;
-    MatrixX<dtype> transition;
+    MatrixXR<dtype> transition;
     VectorX<dtype> init_prob;
 
 public:

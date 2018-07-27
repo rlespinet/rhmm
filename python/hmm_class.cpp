@@ -12,7 +12,9 @@
 
 #include <memory>
 
+#include "python_utils.hpp"
 #include "hmm.hpp"
+
 
 PyTypeObject PyType_HMM = PyType_HMM_class();
 
@@ -39,7 +41,7 @@ static PyObject* hmm_get_states(PyObject_HMM *self, void *closure) {
         return NULL;
     }
 
-    HMM<float> *hmm = self->hmm;
+    HMM<ftype> *hmm = self->hmm;
     if (hmm == NULL) {
         return NULL;
     }
@@ -54,16 +56,16 @@ static PyObject* hmm_get_transitions(PyObject_HMM *self, void *closure) {
         return NULL;
     }
 
-    HMM<float> *hmm = self->hmm;
+    HMM<ftype> *hmm = self->hmm;
     if (hmm == NULL) {
         return NULL;
     }
 
-    MatrixX<float> &transition = hmm->transition;
+    MatrixXR<ftype> &transition = hmm->transition;
 
     npy_intp dims[] = {transition.rows(), transition.cols()};
 
-    return PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, transition.data());
+    return PyArray_SimpleNewFromData(2, dims, NPY_FTYPE, transition.data());
 
     // MatrixX<float> *Sigma = hmm->Sigma;
     // if (Sigma == NULL) {
@@ -82,8 +84,6 @@ static PyObject* hmm_get_transitions(PyObject_HMM *self, void *closure) {
 
     // npy_intp dims[] = {hmm->L, hmm->D, hmm->D};
     // return PyArray_SimpleNewFromData(3, dims, NPY_FLOAT, Sigma_data);
-
-    return NULL;
 
 }
 
@@ -119,7 +119,7 @@ static PyObject *PyObject_HMM_new(PyTypeObject *type, PyObject *args, PyObject *
         return NULL;
     }
 
-    self->hmm = new HMM<float>();
+    self->hmm = new HMM<ftype>();
 
     return (PyObject *) self;
 }
@@ -148,30 +148,6 @@ PyTypeObject PyType_HMM_class() {
 }
 
 
-// template<typename dtype>
-// struct array_data_2D {
-//     dtype *data;
-//     int rows;
-//     int cols;
-// };
-
-
-struct Py_DECREF_wrapper {
-    void operator()(PyObject *py_obj) {
-        Py_DECREF(py_obj);
-    }
-};
-
-#define SCOPE_DECREF(ptr)                                               \
-    std::unique_ptr<PyObject, Py_DECREF_wrapper> DECREF_##ptr((PyObject*) ptr)
-
-
-// void Py_DECREF_wrapper(PyObject *obj) {
-//     Py_DECREF(obj);
-// }
-
-
-
 static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
 
     if (self == NULL) {
@@ -185,7 +161,7 @@ static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwa
         NULL
     };
 
-    HMM<float> *hmm = self->hmm;
+    HMM<ftype> *hmm = self->hmm;
     if (hmm == NULL) {
         PyErr_SetString(PyExc_ValueError, "Internal error, you can start to panic");
         Py_RETURN_NONE;
@@ -206,7 +182,7 @@ static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwa
         Py_RETURN_NONE;
     }
 
-    Distribution<float> *distribution = ((PyObject_Distribution*) state_obj)->distribution;
+    Distribution<ftype> *distribution = ((PyObject_Distribution*) state_obj)->distribution;
 
     if (distribution == NULL) {
         PyErr_SetString(PyExc_ValueError, "Argument distribution has not been properly initialized");
@@ -235,7 +211,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
         NULL
     };
 
-    HMM<float> *hmm = self->hmm;
+    HMM<ftype> *hmm = self->hmm;
     if (hmm == NULL) {
         PyErr_SetString(PyExc_ValueError, "Internal error, you can start to panic");
         Py_RETURN_NONE;
@@ -324,7 +300,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
     //     Py_DECREF(item);
     // }
 
-    std::vector<float> all_data;
+    std::vector<ftype> all_data;
     std::vector<int> all_labels;
 
     std::vector<uint> rows;
@@ -339,7 +315,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
 
         SCOPE_DECREF(data_item);
 
-        PyArrayObject* data_array = (PyArrayObject*) PyArray_FROMANY(data_item, NPY_FLOAT, 2, 2,
+        PyArrayObject* data_array = (PyArrayObject*) PyArray_FROMANY(data_item, NPY_FTYPE, 2, 2,
                                                                      NPY_ARRAY_FORCECAST |
                                                                      NPY_ARRAY_C_CONTIGUOUS |
                                                                      NPY_ARRAY_ALIGNED);
@@ -368,7 +344,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
             Py_RETURN_NONE;
         }
 
-        float *data_array_ptr = (float*) PyArray_DATA(data_array);
+        ftype *data_array_ptr = (ftype*) PyArray_DATA(data_array);
         if (data_array_ptr == NULL) {
             PyErr_Format(PyExc_TypeError, "Sequence %d is not a valid array",
                          item_count);
@@ -432,13 +408,13 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
 
     }
 
-    std::vector< Sequence<float> > sequences;
+    std::vector< Sequence<ftype> > sequences;
 
-    float *all_data_ptr = all_data.data();
+    ftype *all_data_ptr = all_data.data();
     int *all_labels_ptr = all_labels.data();
 
     for (int N : rows) {
-        Sequence<float> seq(all_data_ptr, all_labels_ptr, N, ref_D);
+        Sequence<ftype> seq(all_data_ptr, all_labels_ptr, N, ref_D);
         sequences.push_back(seq);
 
         all_data_ptr   += N * ref_D;
@@ -458,7 +434,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
     hmm->fit(sequences.data(), sequences.size());
 
 
-    float* data_buffer = new float[all_data.size()];
+    ftype* data_buffer = new ftype[all_data.size()];
     std::copy(all_data.begin(), all_data.end(), data_buffer);
 
     int* labels_buffer = new int[all_labels.size()];
@@ -469,7 +445,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
 
     return PyTuple_Pack(2,
                         PyArray_SimpleNewFromData(2, data_dims,
-                                                  NPY_FLOAT, data_buffer),
+                                                  NPY_FTYPE, data_buffer),
                         PyArray_SimpleNewFromData(1, labels_dims,
                                                   NPY_INT, labels_buffer));
 

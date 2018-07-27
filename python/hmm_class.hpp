@@ -2,11 +2,12 @@
 
 #include <Python.h>
 
+#include "ftype.hpp"
 #include "hmm.hpp"
 
 struct PyObject_HMM {
     PyObject_HEAD;
-    HMM<float> *hmm;
+    HMM<ftype> *hmm;
 };
 
 PyTypeObject PyType_HMM_class();

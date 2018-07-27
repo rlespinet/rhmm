@@ -101,7 +101,7 @@ struct Multinomial : Distribution<dtype> {
         }
 
         // TODO(RL) data should not be of type dtype
-        return log_probs[(int)data[0]];
+        return log_probs[(int)*data];
     }
 
     virtual void update_params(const dtype *data, const dtype *gamma, uint T) {

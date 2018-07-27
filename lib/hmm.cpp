@@ -33,7 +33,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
 
     MatrixX<dtype> alpha(M, T);
     for (uint j = 0; j < M; j++) {
-        alpha(j, 0) = states[j]->logp(seq.get_row(1), D) + init_prob[j];
+        alpha(j, 0) = states[j]->logp(seq.get_row(0), D) + init_prob[j];
     }
 
     for (uint t = 0; t < T-1; t++) {
@@ -207,6 +207,7 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len) {
     const uint max_iters = 100;
 
     for (uint i = 0; i < max_iters; i++) {
+        std::cout << "iteration " << i << std::endl;
         forward_backward(data[0]);
     }
 
@@ -220,3 +221,4 @@ uint HMM<dtype>::add_state(Distribution<dtype> *distribution) {
 
 
 template class HMM<float>;
+template class HMM<double>;
