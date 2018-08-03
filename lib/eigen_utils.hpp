@@ -101,3 +101,16 @@ void add_sub_matrix(mat1 &M,
 
     return add_sub_matrix(M, indices, indices, sub_M);
 }
+
+
+// Taken from https://gist.github.com/redpony/fc8a0db6b20f7b1a3f23
+// set use_cholesky if M is symmetric - it's faster and more stable
+// for dep paring it won't be
+template <typename MatrixType>
+inline typename MatrixType::Scalar logdet(const MatrixType& M, bool use_cholesky = false) {
+    using namespace Eigen;
+    typedef typename MatrixType::Scalar Scalar;
+    Scalar ld = 0;
+    LLT<Matrix<Scalar,Dynamic,Dynamic>> chol(M);
+    return 2 * chol.matrixL().toDenseMatrix().diagonal().array().log().sum();
+}

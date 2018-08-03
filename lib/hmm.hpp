@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "distribution.hpp"
+#include "vector.hpp"
 
 template<typename dtype>
 struct Sequence {
@@ -39,8 +40,14 @@ public:
     ~HMM();
 
     void init();
+
+    vector<uint> viterbi_sequence(const Sequence<dtype> &seq);
+    vector< vector<uint> > viterbi(const Sequence<dtype> *data, uint len);
     void forward_backward(const Sequence<dtype> &seq);
-    void fit(const Sequence<dtype> *data, uint len);
+    void fit(const Sequence<dtype> *data, uint len, uint max_iters = 1000);
     uint add_state(Distribution<dtype> *distribution);
 
+
+private:
+    void viterbi_iter(const Sequence<dtype> &seq, uint* result);
 };

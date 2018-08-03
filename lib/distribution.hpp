@@ -45,16 +45,40 @@ struct MultivariateGaussian : Distribution<dtype> {
         for (uint i = 0; i < len; i++) {
             x[i] = data[i] - mean[i];
         }
-        // auto x = Map< VectorX<dtype> >(data, len) - mean;
 
-        auto q = x * (get_inv_cov() * x);
-        assert(q.size() == 1);
-        return - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * get_det_cov() - 0.5 * q(0, 0);
-        // return - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * get_det_cov() -  0.5 * x * (get_inv_cov() * x);
+        dtype q = x.transpose() * (inv_cov() * x);
+        dtype result = - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * log_det_cov() - 0.5 * q;
+        return result;
     }
 
     virtual void update_params(const dtype *data, const dtype *gamma, uint T) {
         // TODO(RL) Implement
+        uint D = mean.size();
+
+        VectorX<dtype> new_mean = VectorX<dtype>::Zero(D);
+
+        dtype logsum_gamma = log_sum_exp(gamma, T);
+
+        dtype *weight = new dtype[T];
+        for (uint t = 0; t < T; t++) {
+            weight[t] = std::exp(gamma[t] - logsum_gamma);
+        }
+
+        for (uint t = 0; t < T; t++) {
+            const VectorX<dtype> data_t = Map< VectorX<dtype> >(const_cast<dtype*>(data) + D * t, D);
+            new_mean += weight[t] * data_t;
+        }
+
+        MatrixX<dtype> new_cov = MatrixX<dtype>::Zero(D, D);
+        for (uint t = 0; t < T; t++) {
+            const VectorX<dtype> data_t = Map< VectorX<dtype> >(const_cast<dtype*>(data) + D * t, D) - new_mean;
+            new_cov += (weight[t] * data_t) * data_t.transpose();
+        }
+
+        delete[] weight;
+
+        mean = new_mean;
+        cov = new_cov;
     }
 
 private:
@@ -65,16 +89,15 @@ private:
     // dtype inv_cov_det;
     // bool inv_cov_validity;
 
-    MatrixX<dtype> get_inv_cov() {
+    MatrixX<dtype> inv_cov() {
         const uint D = cov.rows();
         return cov.llt().solve(MatrixX<dtype>::Identity(D, D));
     }
 
-    dtype get_det_cov() {
-        return cov.determinant();
+    dtype log_det_cov() {
+        dtype result = logdet(cov);
+        return result;
     }
-
-
 
 };
 

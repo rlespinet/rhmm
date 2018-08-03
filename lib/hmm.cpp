@@ -2,6 +2,8 @@
 #include "hmm.hpp"
 #include "math_utils.hpp"
 
+#include "vector.hpp"
+
 template<typename dtype>
 HMM<dtype>::HMM() {
 
@@ -100,18 +102,21 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
                 }
 
                 beta(i, t-1) = log_sum_exp(terms.data(), terms.size());
+                CHECK_LOG_PROB(beta(i, t-1))
             }
         }
 
     }
 
-    std::vector<dtype> terms(M);
-    for (uint i = 0; i < M; i++) {
-        terms[i] = alpha(i, 0) + beta(i, 0);
+    std::vector<dtype> p_obs(T);
+    for (uint t = 0; t < T; t++) {
+        std::vector<dtype> terms(M);
+        for (uint i = 0; i < M; i++) {
+            terms[i] = alpha(i, t) + beta(i, t);
+        }
+        p_obs[t] = log_sum_exp(terms.data(), terms.size());
     }
-    float p_obs = log_sum_exp(terms.data(), terms.size());
 
-    // TODO(RL) Try to compute gamma directly !
     MatrixX<dtype> gamma(M, T);
     for (uint t = 0; t < T; t++) {
 
@@ -122,7 +127,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
                 continue;
             }
 
-            gamma(i, t) = alpha(i, t) + beta(i, t) - p_obs;
+            gamma(i, t) = alpha(i, t) + beta(i, t) - p_obs[t];
         }
     }
 
@@ -143,8 +148,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
                     xi(id, t) = -INFINITY;
                 }
 
-                xi(id, t) = alpha(i, t) + states[j]->logp(seq.get_row(t+1), D) + beta(j, t+1) + transition(i, j) - p_obs;
-
+                xi(id, t) = alpha(i, t) + states[j]->logp(seq.get_row(t+1), D) + beta(j, t+1) + transition(i, j) - p_obs[t];
             }
 
         }
@@ -190,21 +194,84 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
 
     }
 
-
-
 }
 
 
 template<typename dtype>
-void HMM<dtype>::fit(const Sequence<dtype> *data, uint len) {
+vector<uint> HMM<dtype>::viterbi_sequence(const Sequence<dtype> &seq) {
+
+    uint M = states.size();
+    uint T = seq.rows;
+    uint D = seq.cols;
+
+    VectorX<dtype> V(M);
+    for (uint i = 0; i < M; i++) {
+        V[i] = init_prob[i] + states[i]->logp(seq.data, seq.cols);
+    }
+
+    MatrixX<uint> pred(M, T-1);
+
+    VectorX<dtype> W(M);
+    for (uint t = 0; t < T-1; t++) {
+
+        for (uint i = 0; i < M; i++) {
+            dtype best = std::numeric_limits<dtype>::lowest();
+            uint best_id = 0;
+            for (uint k = 0; k < M; k++) {
+                // TODO(RL) compute states[i] outside
+                dtype cur = transition(k, i) + V[k] + states[i]->logp(seq.get_row(t+1), D);
+                if (cur > best) {
+                    best = cur;
+                    best_id = k;
+                }
+            }
+            W[i] = best;
+            pred(i, t) = best_id;
+        }
+        // TODO(RL) Swap ?
+        V = W;
+    }
+
+    uint id = 0;
+    for (uint i = 0; i < M; i++) {
+        if (V[i] > V[id]) {
+            id = i;
+        }
+    }
+
+    vector<uint> result(T);
+    result[T - 1] = id;
+
+    for (uint t = T-1; t > 0; t--) {
+        id = pred(id, t-1);
+        result[t-1] = id;
+    }
+
+    return result;
+
+}
+
+template<typename dtype>
+vector< vector<uint> > HMM<dtype>::viterbi(const Sequence<dtype> *data, uint len) {
+
+    vector< vector<uint> > result(len);
+
+    for (uint i = 0; i < len; i++) {
+        result[i] = viterbi_sequence(data[i]);
+    }
+
+    return result;
+
+}
+
+template<typename dtype>
+void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, uint max_iters) {
 
     if (len > 1) {
         std::cout << "Not supported yet !" << std::endl;
     }
 
     init();
-
-    const uint max_iters = 100;
 
     for (uint i = 0; i < max_iters; i++) {
         std::cout << "iteration " << i << std::endl;
