@@ -64,22 +64,12 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
 
                 for (uint i = 0; i < M; i++) {
 
-                    // auto _a = alpha(i, t);
-                    // auto _b = transition(i, j);
-                    // auto _c = states[j]->logp(seq.get_row(t+1), D);
-                    // std::cout << _a << " " << _b << " " << _c << std::endl;
-
                     terms[i] = alpha(i, t) + transition(i, j) + logp_states(j, t+1);
 
                 }
 
                 alpha(j, t+1) = log_sum_exp(terms.data(), terms.size());
                 CHECK_LOG_PROB(alpha(j, t+1))
-
-                // for (auto o : terms) {
-                //     std::cout << o << " ";
-                // }
-                // std::cout << std::endl;
 
             }
 
