@@ -34,9 +34,16 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
     const uint T = seq.rows;
     const uint D = seq.cols;
 
+    MatrixX<dtype> logp_states(M, T);
+    for (uint t = 0; t < T; t++) {
+        for (uint i = 0; i < M; i++) {
+            logp_states(i, t) = states[i]->logp(seq.get_row(t), D);
+        }
+    }
+
     MatrixX<dtype> alpha(M, T);
     for (uint j = 0; j < M; j++) {
-        alpha(j, 0) = states[j]->logp(seq.get_row(0), D) + init_prob[j];
+        alpha(j, 0) = init_prob[j] + logp_states(j, 0);
         CHECK_LOG_PROB(alpha(j, 0))
     }
 
@@ -48,9 +55,10 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
 
                 uint i = seq.labels[t];
 
-                alpha(j, t+1) = alpha(i, t) + transition(i, j) + states[j]->logp(seq.get_row(t+1), D);
+                alpha(j, t+1) = alpha(i, t) + transition(i, j) + logp_states(j, t+1);
 
             } else {
+
                 std::vector<dtype> terms(M);
 
                 for (uint i = 0; i < M; i++) {
@@ -60,7 +68,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
                     // auto _c = states[j]->logp(seq.get_row(t+1), D);
                     // std::cout << _a << " " << _b << " " << _c << std::endl;
 
-                    terms[i] = alpha(i, t) + transition(i, j) + states[j]->logp(seq.get_row(t+1), D);
+                    terms[i] = alpha(i, t) + transition(i, j) + logp_states(j, t+1);
 
                 }
 
@@ -90,7 +98,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
 
                 uint j = seq.labels[t];
 
-                beta(i, t-1) = beta(j, t) + transition(i, j) + states[j]->logp(seq.get_row(t), D);
+                beta(i, t-1) = beta(j, t) + transition(i, j) + logp_states(j, t);
 
             } else {
 
@@ -98,7 +106,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
 
                 for (uint j = 0; j < M; j++) {
 
-                    terms[j] = beta(j, t) + transition(i, j) + states[j]->logp(seq.get_row(t), D);
+                    terms[j] = beta(j, t) + transition(i, j) + logp_states(j, t);
 
                 }
 
@@ -150,7 +158,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
                     xi(id, t) = -INFINITY;
                 }
 
-                xi(id, t) = alpha(i, t) + states[j]->logp(seq.get_row(t+1), D) + beta(j, t+1) + transition(i, j) - p_obs[t];
+                xi(id, t) = alpha(i, t) + logp_states(j, t+1) + beta(j, t+1) + transition(i, j) - p_obs[t];
                 CHECK_LOG_PROB(xi(id, t))
             }
 
@@ -207,9 +215,16 @@ vector<uint> HMM<dtype>::viterbi_sequence(const Sequence<dtype> &seq) {
     uint T = seq.rows;
     uint D = seq.cols;
 
+    MatrixX<dtype> logp_states(M, T);
+    for (uint t = 0; t < T; t++) {
+        for (uint i = 0; i < M; i++) {
+            logp_states(i, t) = states[i]->logp(seq.get_row(t), D);
+        }
+    }
+
     VectorX<dtype> V(M);
     for (uint i = 0; i < M; i++) {
-        V[i] = init_prob[i] + states[i]->logp(seq.data, seq.cols);
+        V[i] = init_prob[i] + logp_states(i, 0);
     }
 
     MatrixX<uint> pred(M, T-1);
@@ -222,7 +237,7 @@ vector<uint> HMM<dtype>::viterbi_sequence(const Sequence<dtype> &seq) {
             uint best_id = 0;
             for (uint k = 0; k < M; k++) {
                 // TODO(RL) compute states[i] outside
-                dtype cur = transition(k, i) + V[k] + states[i]->logp(seq.get_row(t+1), D);
+                dtype cur = transition(k, i) + V[k] + logp_states(i, t+1);
                 if (cur > best) {
                     best = cur;
                     best_id = k;
