@@ -123,8 +123,6 @@
 
 
 
-
-
 \newcommand{\iid}{i.i.d }
 \newcommand{\wrt}{w.r.t }
 
@@ -154,8 +152,43 @@
 
 \subsection{Data presentation}
 
+\subsection{Hurd}
 
+\section{Data cleanup}
 
+- dead still answering
+
+\section{Missing value imputation}
+
+\subsection{Probabilistic PCA}
+
+\section{Feature selection}
+
+\subsection{LASSO}
+
+\subsection{Gradient boosting algorithms}
+
+\section{Unsupervised learning}
+
+\subsection{Agglomerative clustering}
+
+\subsection{Gaussian mixtures models with missing data}
+
+\section{Semi-supervised learning}
+
+\subsection{Transductive SVMs}
+
+\section{Hidden markov models}
+
+\subsection{Fully unsupervised HMM}
+
+\subsection{Semi-supervised HMM}
+
+\section{Trajectory clustering}
+
+\section{Prediction}
+
+\subsection{LSTM for prediction}
 
 
 \section{Weighted batched update}
@@ -585,6 +618,52 @@ recovered from
 \begin{displaymath}
   \sum_{t = 0}^T q_t^i \grad_{\theta_i}A(\theta_i) = \sum_{t = 0}^T q_t^i T(y_t)
 \end{displaymath}
+i.e.
+\begin{displaymath}
+  \grad_{\theta_i}A(\theta_i) = \dfrac{
+    \sum_{t = 0}^T q_t^i T(y_t)
+  }{
+    \sum_{t = 0}^T q_t^i
+  }
+\end{displaymath}
+
+
+\textbf{Multinomial case}
+
+For the multinomial case, we have
+% \begin{displaymath}
+%   \log{p(y ; \theta)}
+%   = \sum_{j = 1}^{N-1} y_j\log(\theta_j)
+%   + \left( 1 - \sum_{j = 1}^{N-1} y_{j} \right) \log \left( 1 - \sum_{j = 1}^{N-1} \theta_j \right)
+% \end{displaymath}
+
+\begin{displaymath}
+  \left\{
+  \begin{array}{rl}
+    \log{h(y)} & = 0 \\[.5em]
+    T(y) & = (y_1, y_{N}) \\[.5em]
+    \theta & = (\eta_1, \eta_N) \\[.5em]
+    A(\theta) &= \log{\left( \sum_{i = 1}^m \exp{\eta_i}\right)}
+  \end{array}
+  \right.
+\end{displaymath}
+with
+\begin{displaymath}
+  \eta_i = \dfrac{
+    \pi_i
+  }{
+    \sum_{k = 1}^N \pi_k
+  }
+\end{displaymath}
+We have
+\begin{displaymath}
+  \pd{A}{\eta_i}(\theta) = \dfrac{
+    \exp{\eta_i}
+  }{
+    \sum_{i = 1}^m \exp{\eta_i}
+  } = \pi_i
+\end{displaymath}
+
 
 \textbf{Multivariate gaussian case}
 
@@ -627,7 +706,7 @@ We obtain
   \left\{
   \begin{array}{rl}
     \log{h(y)} & = - \dfrac{d}{2} \log(2 \pi) \\[.5em]
-    T(y) & = (y, y y^T) \\[.5em]
+    T(y) & = (y, -\frac{1}{2} y y^T) \\[.5em]
     \theta & = (\mu^T \Sigma^{-1}, \Sigma^{-1}) \\[.5em]
     A(\theta) &= \dfrac{1}{2} \log\det{\Sigma} + \dfrac{1}{2} \mu^T \Sigma^{-1} \mu \\
   \end{array}
@@ -643,12 +722,44 @@ parameters :
   \left\{
   \begin{array}{rl}
     \log{h(y)} & = - \dfrac{d}{2} \log(2 \pi) \\[.5em]
-    T(y) & = (y, y y^T) \\[.5em]
+    T(y) & = (y, -\frac{1}{2} y y^T) \\[.5em]
     \theta & = (\eta, \Lambda) \\[.5em]
-    A(\theta) &= -\dfrac{1}{2} \log\det{\Lambda} - \dfrac{1}{2} \eta^T \Lambda^{-1} \eta \\
+    A(\theta) &= -\dfrac{1}{2} \log\det{\Lambda} + \dfrac{1}{2} \eta^T \Lambda^{-1} \eta \\
   \end{array}
   \right.
 \end{displaymath}
+We have
+\begin{align*}
+  \pd{A}{\eta}(\eta, \Lambda) & = \Lambda^{-1} \eta \\
+  \pd{A}{\Lambda^{-1}}(\eta, \Lambda) & = \dfrac{1}{2} \Lambda + \dfrac{1}{2} \eta \eta^T
+\end{align*}
+From the previous equation, we have
+\begin{displaymath}
+  \Lambda^{-1} \eta = \dfrac{
+    \sum_{t = 0}^T q_t^i y_t
+  }{
+    \sum_{t = 0}^T q_t^i
+  }
+\end{displaymath}
+and
+\begin{displaymath}
+  \dfrac{1}{2} \Lambda + \dfrac{1}{2} \eta \eta^T  = -\dfrac{1}{2} \dfrac{
+    \sum_{t = 0}^T q_t^i y_t y_t^T
+  }{
+    \sum_{t = 0}^T q_t^i
+  }
+\end{displaymath}
+Hence
+\begin{displaymath}
+  \Lambda + \eta \eta^T  = - \dfrac{
+    \sum_{t = 0}^T q_t^i y_t y_t^T
+  }{
+    \sum_{t = 0}^T q_t^i
+  }
+\end{displaymath}
+
+
+
 
 
 % \begin{align*}
