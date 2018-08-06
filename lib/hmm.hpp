@@ -48,9 +48,9 @@ public:
     uint add_state(Distribution<dtype> *distribution);
 
 private:
-    inline void forward_backward(const Sequence<dtype> &seq,
-                                 ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
-                                 ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi);
+    inline dtype forward_backward(const Sequence<dtype> &seq,
+                                  ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
+                                  ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi);
     void viterbi_iter(const Sequence<dtype> &seq, uint* result);
 
 };

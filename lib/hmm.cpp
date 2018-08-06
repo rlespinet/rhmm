@@ -28,9 +28,9 @@ void HMM<dtype>::init() {
 }
 
 template<typename dtype>
-inline void HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
-                                         ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
-                                         ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi) {
+inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
+                                          ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
+                                          ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi) {
 
     const uint M = states.size();
     const uint T = seq.rows;
@@ -164,6 +164,8 @@ inline void HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
         }
 
     }
+
+    return p_obs[T-1];
 
 }
 
