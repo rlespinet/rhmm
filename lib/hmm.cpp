@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "hmm.hpp"
 #include "math_utils.hpp"
+#include "debug.hpp"
 
 #include "vector.hpp"
 
@@ -36,6 +37,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
     MatrixX<dtype> alpha(M, T);
     for (uint j = 0; j < M; j++) {
         alpha(j, 0) = states[j]->logp(seq.get_row(0), D) + init_prob[j];
+        CHECK_LOG_PROB(alpha(j, 0))
     }
 
     for (uint t = 0; t < T-1; t++) {
@@ -63,15 +65,14 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
                 }
 
                 alpha(j, t+1) = log_sum_exp(terms.data(), terms.size());
+                CHECK_LOG_PROB(alpha(j, t+1))
 
                 // for (auto o : terms) {
                 //     std::cout << o << " ";
                 // }
                 // std::cout << std::endl;
 
-
             }
-
 
         }
 
@@ -128,6 +129,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
             }
 
             gamma(i, t) = alpha(i, t) + beta(i, t) - p_obs[t];
+            CHECK_LOG_PROB(gamma(i, t))
         }
     }
 
@@ -149,6 +151,7 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
                 }
 
                 xi(id, t) = alpha(i, t) + states[j]->logp(seq.get_row(t+1), D) + beta(j, t+1) + transition(i, j) - p_obs[t];
+                CHECK_LOG_PROB(xi(id, t))
             }
 
         }
