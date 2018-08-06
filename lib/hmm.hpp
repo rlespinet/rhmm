@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "distribution.hpp"
 #include "vector.hpp"
+#include "ndarray.hpp"
 
 template<typename dtype>
 struct Sequence {
@@ -43,11 +44,13 @@ public:
 
     vector<uint> viterbi_sequence(const Sequence<dtype> &seq);
     vector< vector<uint> > viterbi(const Sequence<dtype> *data, uint len);
-    void forward_backward(const Sequence<dtype> &seq);
     void fit(const Sequence<dtype> *data, uint len, uint max_iters = 1000);
     uint add_state(Distribution<dtype> *distribution);
 
-
 private:
+    inline void forward_backward(const Sequence<dtype> &seq,
+                                 ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
+                                 ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi);
     void viterbi_iter(const Sequence<dtype> &seq, uint* result);
+
 };

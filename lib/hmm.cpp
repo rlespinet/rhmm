@@ -28,7 +28,9 @@ void HMM<dtype>::init() {
 }
 
 template<typename dtype>
-void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
+inline void HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
+                                         ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
+                                         ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi) {
 
     const uint M = states.size();
     const uint T = seq.rows;
@@ -41,7 +43,6 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
         }
     }
 
-    MatrixX<dtype> alpha(M, T);
     for (uint j = 0; j < M; j++) {
         alpha(j, 0) = init_prob[j] + logp_states(j, 0);
         CHECK_LOG_PROB(alpha(j, 0))
@@ -86,7 +87,6 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
 
     }
 
-    MatrixX<dtype> beta(M, T);
     for (uint j = 0; j < M; j++) {
         beta(j, T-1) = 0.0;
     }
@@ -126,7 +126,6 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
         p_obs[t] = log_sum_exp(terms.data(), terms.size());
     }
 
-    MatrixX<dtype> gamma(M, T);
     for (uint t = 0; t < T; t++) {
 
         for (uint i = 0; i < M; i++) {
@@ -141,67 +140,28 @@ void HMM<dtype>::forward_backward(const Sequence<dtype> &seq) {
         }
     }
 
-    MatrixX<dtype> xi(M * M, T);
     for (uint t = 0; t < T - 1; t++) {
 
         for (uint i = 0; i < M; i++) {
 
             for (uint j = 0; j < M; j++) {
 
-                uint id = i * M + j;
 
                 if (seq.labels[t] != -1 && (uint) seq.labels[t] != i) {
-                    xi(id, t) = -INFINITY;
+                    xi(j, i, t) = -INFINITY;
+                    continue;
                 }
 
                 if (seq.labels[t+1] != -1 && (uint) seq.labels[t+1] != j) {
-                    xi(id, t) = -INFINITY;
+                    xi(j, i, t) = -INFINITY;
+                    continue;
                 }
 
-                xi(id, t) = alpha(i, t) + logp_states(j, t+1) + beta(j, t+1) + transition(i, j) - p_obs[t];
-                CHECK_LOG_PROB(xi(id, t))
+                xi(j, i, t) = alpha(i, t) + logp_states(j, t+1) + beta(j, t+1) + transition(i, j) - p_obs[t];
+                CHECK_LOG_PROB(xi(j, i, t))
             }
 
         }
-
-    }
-
-    // Update transition matrix
-    for (uint i = 0; i < M; i++) {
-        for (uint j = 0; j < M; j++) {
-
-            std::vector<dtype> v;
-            v.reserve(T-1);
-            for (uint t = 0; t < T - 1; t++) {
-                uint id = i * M + j;
-                if (xi(id, t) != -INFINITY) {
-                    v.push_back(xi(id, t));
-                }
-            }
-            transition(i, j) = log_sum_exp(v.data(), v.size());
-        }
-    }
-
-    // TODO(RL) Screw optimality
-    for (uint i = 0; i < M; i++) {
-        std::vector<dtype> v;
-        for (uint k = 0; k < M; k++) {
-            v.push_back(transition(i, k));
-        }
-        dtype w = log_sum_exp(v.data(), v.size());
-        for (uint j = 0; j < M; j++) {
-            transition(i, j) -= w;
-        }
-    }
-
-    for (uint i = 0; i < M; i++) {
-
-        std::vector<dtype> v(T);
-        for (uint t = 0; t < T; t++) {
-            v[t] = gamma(i, t);
-        }
-
-        states[i]->update_params(seq.data, v.data(), seq.rows);
 
     }
 
@@ -289,11 +249,70 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, uint max_iters) {
         std::cout << "Not supported yet !" << std::endl;
     }
 
+    uint max_rows = std::numeric_limits<uint>::min();
+    for (uint i = 0; i < len; i++) {
+        max_rows = std::max(max_rows, data[i].rows);
+    }
+
+    const uint M = states.size();
+
     init();
 
-    for (uint i = 0; i < max_iters; i++) {
-        std::cout << "iteration " << i << std::endl;
-        forward_backward(data[0]);
+    ndarray<dtype, 2> alpha(M, max_rows);
+    ndarray<dtype, 2> beta(M, max_rows);
+    ndarray<dtype, 2> gamma(M, max_rows);
+    ndarray<dtype, 3> xi(M, M, max_rows);
+
+    for (uint n = 0; n < max_iters; n++) {
+
+        std::cout << "iteration " << n << std::endl;
+
+        const Sequence<dtype> &seq = data[0];
+
+        forward_backward(seq, alpha, beta, gamma, xi);
+
+        const uint T = seq.rows;
+
+        // Update transition matrix
+        for (uint i = 0; i < M; i++) {
+            for (uint j = 0; j < M; j++) {
+
+                std::vector<dtype> v;
+                v.reserve(T-1);
+                for (uint t = 0; t < T - 1; t++) {
+                    if (xi(j, i, t) != -INFINITY) {
+                        v.push_back(xi(j, i, t));
+                    }
+                }
+                transition(i, j) = log_sum_exp(v.data(), v.size());
+            }
+        }
+
+        // TODO(RL) Screw optimality
+        for (uint i = 0; i < M; i++) {
+            std::vector<dtype> v;
+            for (uint k = 0; k < M; k++) {
+                v.push_back(transition(i, k));
+            }
+            dtype w = log_sum_exp(v.data(), v.size());
+            for (uint j = 0; j < M; j++) {
+                transition(i, j) -= w;
+            }
+        }
+
+        for (uint i = 0; i < M; i++) {
+
+            std::vector<dtype> v(T);
+            for (uint t = 0; t < T; t++) {
+                v[t] = gamma(i, t);
+            }
+
+            states[i]->update_params(seq.data, v.data(), seq.rows);
+
+        }
+
+
+
     }
 
 }
