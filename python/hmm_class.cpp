@@ -188,12 +188,14 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
 
     PyObject* data_obj = NULL;
     PyObject* labels_obj = NULL;
+    double epsilon = 1e-6;
     uint max_iters = 1000;
 
     char *keywords[] = {
         "data",
         "labels",
         "max_iters",
+        "epsilon",
         // "d",
         NULL
     };
@@ -204,7 +206,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
         Py_RETURN_NONE;
     }
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OI", keywords, &data_obj, &labels_obj, &max_iters)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|OId", keywords, &data_obj, &labels_obj, &max_iters, &epsilon)) {
         PyErr_SetString(PyExc_ValueError, "Argument parsing failed");
         Py_RETURN_NONE;
     }
@@ -366,7 +368,7 @@ static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
 
     }
 
-    hmm->fit(sequences.data(), sequences.size(), max_iters);
+    hmm->fit(sequences.data(), sequences.size(), (ftype) epsilon, max_iters);
 
     Py_RETURN_NONE;
 

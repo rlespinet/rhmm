@@ -44,7 +44,7 @@ public:
 
     vector<uint> viterbi_sequence(const Sequence<dtype> &seq);
     vector< vector<uint> > viterbi(const Sequence<dtype> *data, uint len);
-    void fit(const Sequence<dtype> *data, uint len, uint max_iters = 1000);
+    void fit(const Sequence<dtype> *data, uint len, dtype eps = 1e-6, uint max_iters = 1000);
     uint add_state(Distribution<dtype> *distribution);
 
 private:

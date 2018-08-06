@@ -235,7 +235,7 @@ vector< vector<uint> > HMM<dtype>::viterbi(const Sequence<dtype> *data, uint len
 }
 
 template<typename dtype>
-void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, uint max_iters) {
+void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_iters) {
 
     if (len > 1) {
         std::cout << "Not supported yet !" << std::endl;
@@ -255,15 +255,26 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, uint max_iters) {
     ndarray<dtype, 2> gamma(M, max_rows);
     ndarray<dtype, 3> xi(M, M, max_rows);
 
-    for (uint n = 0; n < max_iters; n++) {
+    dtype likelihood = std::numeric_limits<dtype>::min();
+    bool converged = false;
+
+    for (uint n = 0; n < max_iters && !converged; n++) {
 
         std::cout << "iteration " << n << std::endl;
 
         const Sequence<dtype> &seq = data[0];
 
-        forward_backward(seq, alpha, beta, gamma, xi);
-
+        const uint D = seq.cols;
         const uint T = seq.rows;
+
+        dtype new_likelihood = forward_backward(seq, alpha, beta, gamma, xi);
+        if (std::abs(new_likelihood - likelihood) < eps) {
+            converged = true;
+        }
+
+        likelihood = new_likelihood;
+
+        std::cout << "likelihood : " << likelihood << std::endl;
 
         // Update transition matrix
         for (uint i = 0; i < M; i++) {
