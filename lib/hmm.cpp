@@ -235,13 +235,65 @@ vector< vector<uint> > HMM<dtype>::viterbi(const Sequence<dtype> *data, uint len
 }
 
 template<typename dtype>
+void HMM<dtype>::reset_transition_update() {
+
+    const uint M = states.size();
+
+    update_transition = MatrixX<dtype>::Zero(M, M);
+}
+
+template<typename dtype>
+void HMM<dtype>::update_transition_params(const ndarray<dtype, 3> &xi) {
+
+    const uint M = xi.template shape<0>();
+    const uint T = xi.template shape<2>();
+
+    // Update transition matrix
+    for (uint i = 0; i < M; i++) {
+        for (uint j = 0; j < M; j++) {
+
+            std::vector<dtype> v;
+            v.reserve(T-1);
+            for (uint t = 0; t < T - 1; t++) {
+                if (xi(j, i, t) != -INFINITY) {
+                    v.push_back(xi(j, i, t));
+                }
+            }
+            update_transition(i, j) += log_sum_exp(v.data(), v.size());
+        }
+    }
+
+}
+
+template<typename dtype>
+void HMM<dtype>::apply_transition_update() {
+
+    const uint M = update_transition.rows();
+
+    // TODO(RL) Screw optimality
+    for (uint i = 0; i < M; i++) {
+        std::vector<dtype> v;
+        for (uint k = 0; k < M; k++) {
+            v.push_back(update_transition(i, k));
+        }
+        dtype w = log_sum_exp(v.data(), v.size());
+        for (uint j = 0; j < M; j++) {
+            update_transition(i, j) -= w;
+        }
+    }
+
+    transition = update_transition;
+
+}
+
+template<typename dtype>
 void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_iters) {
 
     if (len > 1) {
         std::cout << "Not supported yet !" << std::endl;
     }
 
-    uint max_rows = std::numeric_limits<uint>::min();
+    uint max_rows = std::numeric_limits<uint>::lowest();
     for (uint i = 0; i < len; i++) {
         max_rows = std::max(max_rows, data[i].rows);
     }
@@ -255,66 +307,56 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_
     ndarray<dtype, 2> gamma(M, max_rows);
     ndarray<dtype, 3> xi(M, M, max_rows);
 
-    dtype likelihood = std::numeric_limits<dtype>::min();
+    dtype likelihood = std::numeric_limits<dtype>::lowest();
     bool converged = false;
 
     for (uint n = 0; n < max_iters && !converged; n++) {
 
         std::cout << "iteration " << n << std::endl;
 
-        const Sequence<dtype> &seq = data[0];
+        reset_transition_update();
 
-        const uint D = seq.cols;
-        const uint T = seq.rows;
+        for (uint i = 0; i < M; i++) {
+            states[i]->reset_update();
+        }
 
-        dtype new_likelihood = forward_backward(seq, alpha, beta, gamma, xi);
+        dtype new_likelihood = 0.0;
+        for (uint k = 0; k < len; k++) {
+
+            const Sequence<dtype> &seq = data[k];
+
+            const uint D = seq.cols;
+            const uint T = seq.rows;
+
+            new_likelihood += forward_backward(seq, alpha, beta, gamma, xi);
+
+            update_transition_params(xi);
+
+            for (uint i = 0; i < M; i++) {
+
+                std::vector<dtype> v(T);
+                for (uint t = 0; t < T; t++) {
+                    v[t] = gamma(i, t);
+                }
+
+                states[i]->update_params(seq.data, v.data(), seq.rows);
+
+            }
+
+        }
+
+        for (uint i = 0; i < M; i++) {
+            states[i]->apply_update();
+        }
+
+        apply_transition_update();
+
         if (std::abs(new_likelihood - likelihood) < eps) {
-            converged = true;
+            break;
         }
 
         likelihood = new_likelihood;
-
         std::cout << "likelihood : " << likelihood << std::endl;
-
-        // Update transition matrix
-        for (uint i = 0; i < M; i++) {
-            for (uint j = 0; j < M; j++) {
-
-                std::vector<dtype> v;
-                v.reserve(T-1);
-                for (uint t = 0; t < T - 1; t++) {
-                    if (xi(j, i, t) != -INFINITY) {
-                        v.push_back(xi(j, i, t));
-                    }
-                }
-                transition(i, j) = log_sum_exp(v.data(), v.size());
-            }
-        }
-
-        // TODO(RL) Screw optimality
-        for (uint i = 0; i < M; i++) {
-            std::vector<dtype> v;
-            for (uint k = 0; k < M; k++) {
-                v.push_back(transition(i, k));
-            }
-            dtype w = log_sum_exp(v.data(), v.size());
-            for (uint j = 0; j < M; j++) {
-                transition(i, j) -= w;
-            }
-        }
-
-        for (uint i = 0; i < M; i++) {
-
-            std::vector<dtype> v(T);
-            for (uint t = 0; t < T; t++) {
-                v[t] = gamma(i, t);
-            }
-
-            states[i]->update_params(seq.data, v.data(), seq.rows);
-
-        }
-
-
 
     }
 

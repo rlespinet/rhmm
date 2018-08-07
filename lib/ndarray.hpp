@@ -99,7 +99,8 @@ struct ndarray {
         return first + m_dims[i] * compute_id(i+1, args...);
     }
 
-    const uint shape(uint i) const {
+    template<uint i>
+    const uint shape() const {
         static_assert(i < D, "Wrong number of dimensions");
         return m_dims[i];
     }

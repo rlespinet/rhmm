@@ -53,4 +53,14 @@ private:
                                   ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi);
     void viterbi_iter(const Sequence<dtype> &seq, uint* result);
 
+    MatrixXR<dtype> update_transition;
+
+
+    void reset_transition_update();
+
+    void update_transition_params(const ndarray<dtype, 3> &xi);
+
+    void apply_transition_update();
+
+
 };
