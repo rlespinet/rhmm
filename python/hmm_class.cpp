@@ -26,12 +26,15 @@ static PyMemberDef PyObject_HMM_members[] = {
 
 static PyObject* hmm_get_states(PyObject_HMM *self, void *closure);
 static PyObject* hmm_get_transitions(PyObject_HMM *self, void *closure);
+static PyObject* hmm_get_init_probs(PyObject_HMM *self, void *closure);
 
 static PyGetSetDef PyObject_HMM_getsetters[] = {
     {"states", (getter) hmm_get_states, NULL,
      "get the states of the HMM", NULL},
     {"transitions", (getter) hmm_get_transitions, NULL,
      "get transition matrix", NULL},
+    {"init_probs", (getter) hmm_get_init_probs, NULL,
+     "get initial probability vector", NULL},
     {NULL}  /* Sentinel */
 };
 
@@ -68,6 +71,27 @@ static PyObject* hmm_get_transitions(PyObject_HMM *self, void *closure) {
     return PyArray_SimpleNewFromData(2, dims, NPY_FTYPE, transition.data());
 
 }
+
+
+static PyObject* hmm_get_init_probs(PyObject_HMM *self, void *closure) {
+
+    if (self == NULL) {
+        return NULL;
+    }
+
+    HMM<ftype> *hmm = self->hmm;
+    if (hmm == NULL) {
+        return NULL;
+    }
+
+    VectorX<ftype> &init_prob = hmm->init_prob;
+
+    npy_intp dims[] = {init_prob.size()};
+
+    return PyArray_SimpleNewFromData(1, dims, NPY_FTYPE, init_prob.data());
+
+}
+
 
 static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwargs);
 static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs);
