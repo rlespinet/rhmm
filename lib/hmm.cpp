@@ -45,7 +45,7 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
 
     for (uint j = 0; j < M; j++) {
         alpha(j, 0) = init_prob[j] + logp_states(j, 0);
-        CHECK_LOG_PROB(alpha(j, 0))
+        CHECK_LOG_PROB(alpha(j, 0));
     }
 
     for (uint t = 0; t < T-1; t++) {
@@ -69,7 +69,7 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
                 }
 
                 alpha(j, t+1) = log_sum_exp(terms.data(), terms.size());
-                CHECK_LOG_PROB(alpha(j, t+1))
+                CHECK_LOG_PROB(alpha(j, t+1));
 
             }
 
@@ -101,7 +101,7 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
                 }
 
                 beta(i, t-1) = log_sum_exp(terms.data(), terms.size());
-                CHECK_LOG_PROB(beta(i, t-1))
+                CHECK_LOG_PROB(beta(i, t-1));
             }
         }
 
@@ -126,7 +126,7 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
             }
 
             gamma(i, t) = alpha(i, t) + beta(i, t) - p_obs[t];
-            CHECK_LOG_PROB(gamma(i, t))
+            CHECK_LOG_PROB(gamma(i, t));
         }
     }
 
@@ -148,7 +148,7 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
                 }
 
                 xi(j, i, t) = alpha(i, t) + logp_states(j, t+1) + beta(j, t+1) + transition(i, j) - p_obs[t];
-                CHECK_LOG_PROB(xi(j, i, t))
+                CHECK_LOG_PROB(xi(j, i, t));
             }
 
         }
