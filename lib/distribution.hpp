@@ -82,9 +82,9 @@ struct MultivariateGaussian : Distribution<dtype> {
         VectorX<dtype> new_update_mean = update_mean;
         for (uint t = 0; t < T; t++) {
             const VectorX<dtype> data_t = Map< VectorX<dtype> >(const_cast<dtype*>(data) + D * t, D);
-            new_update_mean += weight[t] * (data_t - update_mean);
+            // TODO(RL) Underflow ?
+            new_update_mean += weight[t] / update_weight_sum * (data_t - update_mean);
         }
-        new_update_mean /= update_weight_sum;
 
         for (uint t = 0; t < T; t++) {
             const VectorX<dtype> data_t = Map< VectorX<dtype> >(const_cast<dtype*>(data) + D * t, D);

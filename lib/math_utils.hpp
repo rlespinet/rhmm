@@ -19,3 +19,18 @@ dtype log_sum_exp(const dtype *data, uint len) {
 
     return std::log(result) + max;
 }
+
+
+
+// TODO(RL) We could do that with variadic template arguments, see
+// https://stackoverflow.com/questions/16821654/splitting-argpack-in-half
+template<typename dtype>
+dtype log_sum_exp(dtype a, dtype b) {
+
+    dtype max = std::max(a, b);
+    if (max == -INFINITY) {
+        return -INFINITY;
+    }
+
+    return std::log(std::exp(a - max) + std::exp(b - max)) + max;
+}

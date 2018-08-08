@@ -58,9 +58,16 @@ private:
 
     void reset_transition_update();
 
-    void update_transition_params(const ndarray<dtype, 3> &xi);
+    void update_transition_params(const ndarray<dtype, 3> &xi, uint T);
 
     void apply_transition_update();
 
+    VectorX<dtype> update_init_prob;
+
+    void reset_init_prob_update();
+
+    void update_init_prob_params(const ndarray<dtype, 2> &gamma);
+
+    void apply_init_prob_update();
 
 };

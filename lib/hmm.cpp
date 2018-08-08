@@ -239,14 +239,14 @@ void HMM<dtype>::reset_transition_update() {
 
     const uint M = states.size();
 
-    update_transition = MatrixX<dtype>::Zero(M, M);
+    update_transition = std::numeric_limits<dtype>::lowest() * MatrixX<dtype>::Ones(M, M);
+
 }
 
 template<typename dtype>
-void HMM<dtype>::update_transition_params(const ndarray<dtype, 3> &xi) {
+void HMM<dtype>::update_transition_params(const ndarray<dtype, 3> &xi, uint T) {
 
-    const uint M = xi.template shape<0>();
-    const uint T = xi.template shape<2>();
+    const uint M = states.size();
 
     // Update transition matrix
     for (uint i = 0; i < M; i++) {
@@ -259,7 +259,8 @@ void HMM<dtype>::update_transition_params(const ndarray<dtype, 3> &xi) {
                     v.push_back(xi(j, i, t));
                 }
             }
-            update_transition(i, j) += log_sum_exp(v.data(), v.size());
+            update_transition(i, j) = log_sum_exp(update_transition(i, j),
+                                                  log_sum_exp(v.data(), v.size()));
         }
     }
 
@@ -285,6 +286,43 @@ void HMM<dtype>::apply_transition_update() {
     transition = update_transition;
 
 }
+
+
+template<typename dtype>
+void HMM<dtype>::reset_init_prob_update() {
+
+    const uint M = states.size();
+
+    update_init_prob = std::numeric_limits<dtype>::lowest() * VectorX<dtype>::Ones(M);
+
+}
+
+template<typename dtype>
+void HMM<dtype>::update_init_prob_params(const ndarray<dtype, 2> &gamma) {
+
+    const uint M = states.size();
+
+    for (uint i = 0; i < M; i++) {
+        update_init_prob[i] = log_sum_exp(update_init_prob[i], gamma(i, 0));
+    }
+
+
+}
+
+template<typename dtype>
+void HMM<dtype>::apply_init_prob_update() {
+
+    const uint M = update_init_prob.size();
+
+    dtype w = log_sum_exp(update_init_prob.data(), update_init_prob.size());
+    for (uint i = 0; i < M; i++) {
+        update_init_prob[i] -= w;
+    }
+
+    init_prob = update_init_prob;
+
+}
+
 
 template<typename dtype>
 void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_iters) {
@@ -316,6 +354,8 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_
 
         reset_transition_update();
 
+        reset_init_prob_update();
+
         for (uint i = 0; i < M; i++) {
             states[i]->reset_update();
         }
@@ -330,7 +370,9 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_
 
             new_likelihood += forward_backward(seq, alpha, beta, gamma, xi);
 
-            update_transition_params(xi);
+            update_transition_params(xi, T);
+
+            update_init_prob_params(gamma);
 
             for (uint i = 0; i < M; i++) {
 
@@ -350,6 +392,8 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_
         }
 
         apply_transition_update();
+
+        apply_init_prob_update();
 
         if (std::abs(new_likelihood - likelihood) < eps) {
             break;
