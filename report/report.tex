@@ -15,6 +15,7 @@
 \usepackage{subcaption}
 \usepackage{listings}
 \usepackage{tabularx}
+\usepackage{hyperref}
 \usepackage{color}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{fancyhdr}
@@ -116,6 +117,7 @@
 \newcommand{\set}[2]{\left\{ #1 \hspace{.5em} ; \hspace{.5em}#2 \right\}}
 \newcommand{\eqdef}{\triangleq}
 \newcommand{\tr}[1]{Tr\left( #1 \right)}
+\newcommand{\lse}[1]{\text{lse}\left( #1 \right)}
 \newcommand{\pcond}[2]{p(#1 \hspace{-.2em}\mid\hspace{-.2em} #2)}
 \newcommand{\e}[1]{\mathop{\mathbb{E}}\left[#1\right]}
 \newcommand{\conde}[2]{\mathop{\mathbb{E}}\left[#1 \hspace{.2em}\mid\hspace{.2em} #2 \right]}
@@ -145,24 +147,82 @@
 \thispagestyle{fancy}
 
 
+\section{Abstract}
+
+This report presents my work as an intern in the NPI team
+(Neuropsychologie Interventionnelle)
+
+\section{Introduction}
+
+The goal was to try to predict dementia in the population based on
+data related to aging \url{https://g2aging.org/}.
+
+Dementia is a medical condition that affects the ability to think and
+remember and is severe enough to reduce a person's ability to perform
+daily tasks. It is a group of symptoms rather than a specific disease
+which causes the affected person to lose its autonomy (most of the
+time, the person must get helped from a caregiver).
+
+In the context of the internship, we are interested in two tasks :
+\begin{itemize}
+\item Classify dement individuals based on the available features, and
+  determine which features have the highest impact on the prediction.
+\item Predict the evolution of dementia for a given individual
+\end{itemize}
+% \begin{itemize}
+% \item We want to classify dement individuals based on the
+%   available features, and determine which features have the highest
+%   impact on the prediction.
+% \item As an ultimate objective, we are also interested in predicting
+%   the evolution of dementia for a given individual
+% \end{itemize}
+Dementia is a very important topic nowadays and will be of increasing
+interest in the upcoming years, due to ageing of the population,
+particularly in emerging countries \cite{?}.
+
+\section{Dataset}
+
+The Gateway to global aging (\url{https://g2aging.org/}) is an
+initiative sponsored by the National Institute on Aging to facilitate
+cross-national comparative studies on aging. It contains informations
+on
+
+\begin{itemize}
+\item Health, cognition, diseases, emotion, injury, physical
+functioning, physical measures, health behaviors
+\item Health insurance, health services utilization, health care
+expenditure, out-of-pocket spending
+\item Labor force, employment status/history, earnings,
+disability, retirement, work characteristics, pensions
+\item Economic Status, income, wealth, consumption,
+earnings, government transfers, housing, financial and
+non-financial assets
+\item Family structure, social network, family demographics,
+family exchange, family support, marriage, social
+participation
+\end{itemize}
 
 \section{Problem presentation}
 
 \subsection{Context}
 
-\subsection{Data presentation}
+\subsection{Data}
 
-\subsection{Hurd}
+\subsection{Literature}
 
-\section{Data cleanup}
+% Hurd & Laurent
 
-- dead still answering
+\section{Data preprocessing}
+
+% dead still answering
 
 \section{Missing value imputation}
 
 \subsection{Probabilistic PCA}
 
-\section{Feature selection}
+% Impute PCA
+
+\section{Feature selection on Adams}
 
 \subsection{LASSO}
 
@@ -185,6 +245,8 @@
 \subsection{Semi-supervised HMM}
 
 \section{Trajectory clustering}
+
+% KMLShape
 
 \section{Prediction}
 
@@ -229,7 +291,7 @@ Let
 \begin{align*}
   \mu_{n + k}
   &=
-    \mu_{n + k} = \dfrac{1}{\xi_1^{n+k}} \sum_{i = 1}^{n+k} p_i x_i \\
+    \dfrac{1}{\xi_1^{n+k}} \sum_{i = 1}^{n+k} p_i x_i \\
   &=
     \dfrac{1}{\xi_{1}^{n+k}}
     \left[
@@ -255,6 +317,21 @@ Hence,
     \dfrac{\sum_{i = n+1}^{n+k} p_i (x_i - \mu_n)}{\sum_{1}^{n+k}p_i}
   \end{displaymath}
 \end{framed}
+Additionally, in log scale,
+\begin{displaymath}
+  \log{\mu_{n+k}}= \lse{
+    \mu_n,
+    \log{\sum_{n+1}^{n+k} p_i(x_i - \mu_n)}
+    - \log{\sum_{n+1}^{n+k} p_i(x_i - \mu_n)}
+  }
+\end{displaymath}
+\begin{displaymath}
+  \log{\mu_{n+k}}= \lse{
+    \mu_n,
+    \lse{\left\{\log{p_i} + \log{(x_i - \mu_n)} \right\}_{n+1}^{n+k} }
+    - \lse{\left\{\log{p_i} + \log{(x_i - \mu_n)} \right\}_{1}^{n+k} }
+  }
+\end{displaymath}
 
 
 % \begin{align*}
@@ -938,6 +1015,53 @@ Which gives the following update rules
   - \dfrac{1}{2} (y - \mu)^T \Sigma^{-1} (y - \mu)
 \end{displaymath}
 
+
+\begin{displaymath}
+  \hat{\pi}_i^N = \dfrac{
+    \sum_{n=1}^N \gamma_{0,n}^i
+  }{
+     \sum_{n=1}^N \sum_{i=1}^M \gamma_{0,n}^i
+  } = \dfrac{
+    \sum_{n=1}^N \gamma_{0,n}^i
+  }{
+     N
+  }
+\end{displaymath}
+
+
+\begin{displaymath}
+  \hat{a}_{i,j}^N = \dfrac{
+    \sum_{n=1}^N \sum_{t=0}^{T_n-1} \xi(q_t^i, q_{t+1}^j)
+  }{
+    \sum_{n=1}^N \sum_{t=0}^{T_n-1} \gamma(q_t^i)
+  }
+\end{displaymath}
+
+
+\begin{displaymath}
+  \log{\hat{a}_{i,j}^N}
+  = \log{\sum_{n=1}^N \sum_{t=0}^{T_n-1} \xi(q_t^i, q_{t+1}^j)}
+  - \log{\sum_{n=1}^N \sum_{t=0}^{T_n-1} \gamma(q_t^i)}
+\end{displaymath}
+
+
+\begin{displaymath}
+  \hat{\mu}_N = \dfrac{
+    \sum_{n=1}^N \sum_{t=1}^{T_n} \gamma_{t,n} y_{t,n}
+  }{
+    \sum_{n=1}^N \sum_{t=1}^{T_n} \gamma_{t,n}
+  }
+\end{displaymath}
+
+
+\begin{displaymath}
+  \hat{\Sigma}_N = \dfrac{
+    \sum_{n=1}^N \sum_{t=1}^{T_n}
+    \gamma_{t,n} \left( y_{t,n} - \mu_N \right) \left( y_{t,n} - \mu_N \right)^T
+  }{
+    \sum_{n=1}^N \sum_{t=1}^{T_n} \gamma_{t,n}
+  }
+\end{displaymath}
 
 
 
