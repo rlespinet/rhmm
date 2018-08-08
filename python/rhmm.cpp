@@ -17,8 +17,8 @@
 static char module_docstring[] = "Functions related to machine learning";
 
 // static char ppca_docstring [] = "Probabilistic PCA";
-static char hmm_state_docstring [] = "Type representing an emission state of the HMM";
-static char hmm_docstring [] = "HMM implementation";
+// static char hmm_state_docstring [] = "Type representing an emission state of the HMM";
+// static char hmm_docstring [] = "HMM implementation";
 
 // static PyObject *rhmm_ppca_bind(PyObject *self, PyObject *args, PyObject *kwargs);
 // static PyObject *rhmm_hmm_bind(PyObject *self, PyObject *args, PyObject *kwargs);
