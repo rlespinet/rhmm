@@ -187,26 +187,43 @@ vector<uint> HMM<dtype>::viterbi_sequence(const Sequence<dtype> &seq) {
         for (uint i = 0; i < M; i++) {
             dtype best = std::numeric_limits<dtype>::lowest();
             uint best_id = 0;
-            for (uint k = 0; k < M; k++) {
-                // TODO(RL) compute states[i] outside
-                dtype cur = transition(k, i) + V[k] + logp_states(i, t+1);
-                if (cur > best) {
-                    best = cur;
-                    best_id = k;
+            if (seq.labels[t] != -1) {
+
+                uint k = seq.labels[t];
+
+                W[i] = transition(k, i) + V[k] + logp_states(i, t+1);
+                pred(i, t) = k;
+
+            } else {
+
+                for (uint k = 0; k < M; k++) {
+                    // TODO(RL) compute states[i] outside
+                    dtype cur = transition(k, i) + V[k] + logp_states(i, t+1);
+                    if (cur > best) {
+                        best = cur;
+                        best_id = k;
+                    }
                 }
+                W[i] = best;
+                pred(i, t) = best_id;
+
             }
-            W[i] = best;
-            pred(i, t) = best_id;
         }
         // TODO(RL) Swap ?
         V = W;
     }
 
-    uint id = 0;
-    for (uint i = 0; i < M; i++) {
-        if (V[i] > V[id]) {
-            id = i;
+    uint id;
+    if (seq.labels[T - 1] != -1) {
+        id = seq.labels[T - 1];
+    } else {
+        id = 0;
+        for (uint i = 0; i < M; i++) {
+            if (V[i] > V[id]) {
+                id = i;
+            }
         }
+        // result[T - 1] = std::distance(V, std::max_element(V, V + M))
     }
 
     vector<uint> result(T);
