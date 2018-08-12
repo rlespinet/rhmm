@@ -266,6 +266,10 @@ void HMM<dtype>::update_transition_params(const ndarray<dtype, 3> &xi, uint T) {
 
     const uint M = states.size();
 
+    if (T < 2) {
+        return;
+    }
+
     // Update transition matrix
     for (uint i = 0; i < M; i++) {
         for (uint j = 0; j < M; j++) {
