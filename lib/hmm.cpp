@@ -345,10 +345,6 @@ void HMM<dtype>::apply_init_prob_update() {
 template<typename dtype>
 void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_iters) {
 
-    if (len > 1) {
-        std::cout << "Not supported yet !" << std::endl;
-    }
-
     uint max_rows = std::numeric_limits<uint>::lowest();
     for (uint i = 0; i < len; i++) {
         max_rows = std::max(max_rows, data[i].rows);
