@@ -2,6 +2,7 @@
 
 #include "eigen_utils.hpp"
 #include "math_utils.hpp"
+#include "debug.hpp"
 
 #include <iostream>
 
