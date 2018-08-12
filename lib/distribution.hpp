@@ -26,6 +26,8 @@ Distribution<dtype>::~Distribution() {
 template<typename dtype>
 struct MultivariateGaussian : Distribution<dtype> {
 
+    const dtype cov_reg = 1e-5;
+
     VectorX<dtype> mean;
     MatrixX<dtype> cov;
 
@@ -98,8 +100,11 @@ struct MultivariateGaussian : Distribution<dtype> {
     }
 
     void apply_update() {
+
+        uint D = mean.size();
+
         mean = update_mean;
-        cov = update_cov / update_weight_sum;
+        cov = update_cov / update_weight_sum + cov_reg * MatrixX<dtype>::Identity(D, D);
     }
 
 private:
