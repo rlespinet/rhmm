@@ -8,6 +8,7 @@
 struct PyObject_HMM {
     PyObject_HEAD;
     HMM<ftype> *hmm;
+    PyObject *states;
 };
 
 PyTypeObject PyType_HMM_class();

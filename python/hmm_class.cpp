@@ -108,6 +108,9 @@ static PyMethodDef PyObject_HMM_methods[] = {
 static void PyObject_HMM_dealloc(PyObject_HMM *self) {
 
     std::cout << "HMM_free" << std::endl;
+
+    Py_DECREF(self->states);
+
     if (self->hmm != NULL) {
         delete self->hmm;
     }
@@ -129,6 +132,8 @@ static PyObject *PyObject_HMM_new(PyTypeObject *type, PyObject *args, PyObject *
     }
 
     self->hmm = new HMM<ftype>();
+
+    self->states = PyList_New(0);
 
     return (PyObject *) self;
 }
@@ -176,6 +181,12 @@ static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwa
         Py_RETURN_NONE;
     }
 
+    PyObject *states = self->states;
+    if (states == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Internal error, you can start to panic");
+        Py_RETURN_NONE;
+    }
+
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &state_obj)) {
         PyErr_SetString(PyExc_ValueError, "Argument parsing failed");
         Py_RETURN_NONE;
@@ -188,6 +199,12 @@ static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwa
 
     if (!PyObject_TypeCheck(state_obj, &PyType_Distribution)) {
         PyErr_SetString(PyExc_ValueError, "Argument is not a valid distribution");
+        Py_RETURN_NONE;
+    }
+
+    int status = PyList_Append(self->states, state_obj);
+    if (status == -1) {
+        PyErr_SetString(PyExc_ValueError, "Failed to append state to the list of states");
         Py_RETURN_NONE;
     }
 

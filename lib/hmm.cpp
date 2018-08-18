@@ -12,9 +12,6 @@ HMM<dtype>::HMM() {
 
 template<typename dtype>
 HMM<dtype>::~HMM() {
-    for (Distribution<dtype> *state : states) {
-        delete state;
-    }
 }
 
 template<typename dtype>
