@@ -22,6 +22,46 @@ template<typename dtype>
 Distribution<dtype>::~Distribution() {
 }
 
+template<typename dtype>
+struct PDMatrixX {
+public:
+
+    PDMatrixX(const MatrixX<dtype> &mat) {
+        set(mat);
+    }
+
+    PDMatrixX(const PDMatrixX &mat) {
+        llt = mat.llt;
+        log_det = mat.log_det;
+    }
+
+    MatrixX<dtype> get() {
+        return llt.matrixLLT();
+    }
+
+    dtype inv_quad(const VectorX<dtype> &x) {
+        return llt.matrixL().solve(x).squaredNorm();
+    }
+
+    dtype logdet() {
+        return log_det;
+    }
+
+    PDMatrixX& operator=(const MatrixX<dtype> &mat) {
+        set(mat);
+        return *this;
+    }
+
+private:
+    void set(const MatrixX<dtype> &mat) {
+        llt = LLT< MatrixX<dtype> >(mat);
+        MatrixX<dtype> L = llt.matrixL();
+        log_det = 2.0 * L.diagonal().array().log().sum();
+    }
+
+    LLT< MatrixX<dtype> > llt;
+    dtype log_det;
+};
 
 template<typename dtype>
 struct MultivariateGaussian : Distribution<dtype> {
@@ -29,7 +69,7 @@ struct MultivariateGaussian : Distribution<dtype> {
     const dtype cov_reg = 1e-5;
 
     VectorX<dtype> mean;
-    MatrixX<dtype> cov;
+    PDMatrixX<dtype> cov;
 
     MultivariateGaussian(const MatrixX<dtype> &mean, const MatrixX<dtype> &cov)
         : mean(mean)
@@ -51,8 +91,8 @@ struct MultivariateGaussian : Distribution<dtype> {
             x[i] = data[i] - mean[i];
         }
 
-        dtype q = x.transpose() * (inv_cov() * x);
-        dtype result = - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * log_det_cov() - 0.5 * q;
+        dtype q = cov.inv_quad(x);
+        dtype result = - 0.5 * len * std::log(2.0 * M_PI) - 0.5 * cov.logdet() - 0.5 * q;
         return result;
     }
 
@@ -101,26 +141,10 @@ struct MultivariateGaussian : Distribution<dtype> {
         uint D = mean.size();
 
         mean = update_mean;
-        cov = update_cov / update_weight_sum + cov_reg * MatrixX<dtype>::Identity(D, D);
+        cov = MatrixX<dtype>(update_cov / update_weight_sum + cov_reg * MatrixX<dtype>::Identity(D, D));
     }
 
 private:
-
-    // TODO(RL) This is really inefficient, cache the results as soon as it works !!
-
-    // MatrixX<dtype> inv_cov;
-    // dtype inv_cov_det;
-    // bool inv_cov_validity;
-
-    MatrixX<dtype> inv_cov() {
-        const uint D = cov.rows();
-        return cov.llt().solve(MatrixX<dtype>::Identity(D, D));
-    }
-
-    dtype log_det_cov() {
-        dtype result = logdet(cov);
-        return result;
-    }
 
     VectorX<dtype> update_mean;
     MatrixX<dtype> update_cov;

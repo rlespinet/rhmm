@@ -397,7 +397,7 @@ static PyObject* multivariate_gaussian_get_cov(PyObject_MultivariateGaussian *se
         return NULL;
     }
 
-    MatrixX<ftype> &cov = distribution->cov;
+    MatrixX<ftype> cov = distribution->cov.get();
 
     npy_intp dims[] = {cov.rows(), cov.cols()};
 
