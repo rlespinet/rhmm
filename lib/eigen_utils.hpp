@@ -4,6 +4,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
 
+#include <vector>
+
 using namespace Eigen;
 
 template<typename dtype>
