@@ -26,8 +26,8 @@ void HMM<dtype>::init() {
 
 template<typename dtype>
 inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
-                                          ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
-                                          ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi) {
+                                          MatrixX<dtype> &alpha, MatrixX<dtype> &beta,
+                                          MatrixX<dtype> &gamma, MatrixX<dtype> &xi) {
 
     const uint M = states.size();
     const uint T = seq.rows;
@@ -134,19 +134,20 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
 
             for (uint j = 0; j < M; j++) {
 
+                uint id = i * M + j;
 
                 if (seq.labels[t] != -1 && (uint) seq.labels[t] != i) {
-                    xi(j, i, t) = -INFINITY;
+                    xi(id, t) = -INFINITY;
                     continue;
                 }
 
                 if (seq.labels[t+1] != -1 && (uint) seq.labels[t+1] != j) {
-                    xi(j, i, t) = -INFINITY;
+                    xi(id, t) = -INFINITY;
                     continue;
                 }
 
-                xi(j, i, t) = alpha(i, t) + logp_states(j, t+1) + beta(j, t+1) + transition(i, j) - p_obs[t];
-                CHECK_LOG_PROB(xi(j, i, t));
+                xi(id, t) = alpha(i, t) + logp_states(j, t+1) + beta(j, t+1) + transition(i, j) - p_obs[t];
+                CHECK_LOG_PROB(xi(id, t));
             }
 
         }
@@ -259,7 +260,7 @@ void HMM<dtype>::reset_transition_update() {
 }
 
 template<typename dtype>
-void HMM<dtype>::update_transition_params(const ndarray<dtype, 3> &xi, uint T) {
+void HMM<dtype>::update_transition_params(const MatrixX<dtype> &xi, uint T) {
 
     const uint M = states.size();
 
@@ -271,11 +272,13 @@ void HMM<dtype>::update_transition_params(const ndarray<dtype, 3> &xi, uint T) {
     for (uint i = 0; i < M; i++) {
         for (uint j = 0; j < M; j++) {
 
+            uint id = i * M + j;
+
             std::vector<dtype> v;
             v.reserve(T-1);
             for (uint t = 0; t < T - 1; t++) {
-                if (xi(j, i, t) != -INFINITY) {
-                    v.push_back(xi(j, i, t));
+                if (xi(id, t) != -INFINITY) {
+                    v.push_back(xi(id, t));
                 }
             }
             update_transition(i, j) = log_sum_exp(update_transition(i, j),
@@ -317,7 +320,7 @@ void HMM<dtype>::reset_init_prob_update() {
 }
 
 template<typename dtype>
-void HMM<dtype>::update_init_prob_params(const ndarray<dtype, 2> &gamma) {
+void HMM<dtype>::update_init_prob_params(const MatrixX<dtype> &gamma) {
 
     const uint M = states.size();
 
@@ -355,10 +358,10 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_
 
     init();
 
-    ndarray<dtype, 2> alpha(M, max_rows);
-    ndarray<dtype, 2> beta(M, max_rows);
-    ndarray<dtype, 2> gamma(M, max_rows);
-    ndarray<dtype, 3> xi(M, M, max_rows);
+    MatrixX<dtype> alpha(M, max_rows);
+    MatrixX<dtype> beta(M, max_rows);
+    MatrixX<dtype> gamma(M, max_rows);
+    MatrixX<dtype> xi(M * M, max_rows);
 
     dtype likelihood = std::numeric_limits<dtype>::lowest();
     bool converged = false;

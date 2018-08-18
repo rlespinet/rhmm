@@ -49,8 +49,8 @@ public:
 
 private:
     inline dtype forward_backward(const Sequence<dtype> &seq,
-                                  ndarray<dtype, 2> &alpha, ndarray<dtype, 2> &beta,
-                                  ndarray<dtype, 2> &gamma, ndarray<dtype, 3> &xi);
+                                  MatrixX<dtype> &alpha, MatrixX<dtype> &beta,
+                                  MatrixX<dtype> &gamma, MatrixX<dtype> &xi);
     void viterbi_iter(const Sequence<dtype> &seq, uint* result);
 
     MatrixXR<dtype> update_transition;
@@ -58,7 +58,7 @@ private:
 
     void reset_transition_update();
 
-    void update_transition_params(const ndarray<dtype, 3> &xi, uint T);
+    void update_transition_params(const MatrixX<dtype> &xi, uint T);
 
     void apply_transition_update();
 
@@ -66,7 +66,7 @@ private:
 
     void reset_init_prob_update();
 
-    void update_init_prob_params(const ndarray<dtype, 2> &gamma);
+    void update_init_prob_params(const MatrixX<dtype> &gamma);
 
     void apply_init_prob_update();
 
