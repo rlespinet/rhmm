@@ -70,12 +70,9 @@ struct MultivariateGaussian : Distribution<dtype> {
         // TODO(RL) Implement
         uint D = mean.size();
 
-
-        dtype logsum_gamma = log_sum_exp(gamma, T);
-
         dtype *weight = new dtype[T];
         for (uint t = 0; t < T; t++) {
-            weight[t] = std::exp(gamma[t] - logsum_gamma);
+            weight[t] = std::exp(gamma[t]);
         }
 
         for (uint t = 0; t < T; t++) {
