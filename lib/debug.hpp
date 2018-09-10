@@ -1,19 +1,9 @@
 #pragma once
 
 #define DEBUG
+
 #ifdef DEBUG
-
-#include <cmath>
-
-#define CHECK_LOG_PROB(p)                                       \
-    do {                                                        \
-        if (p > 1e-6 || std::isnan(p)) {                        \
-            std::cout << "ERR: line " << __LINE__               \
-                      << " log prob is " << p << std::endl;     \
-            assert(0);                                          \
-        }                                                       \
-    } while (false);
-
+#undef NDEBUG
 
 #include <fstream>
 
@@ -32,9 +22,22 @@ namespace debug {
 
 }
 
-
-#else // NDEBUG
-
-#define CHECK_LOG_PROB(p)
-
 #endif
+
+#include <cmath>
+#include <cassert>
+
+template<typename T>
+inline bool assert_not_nan(T t) {
+    assert(!std::isnan(t));
+}
+
+template<typename T>
+inline bool assert_negative_smooth(T t, T eps=1e-6) {
+    assert(t < eps);
+}
+
+template<typename T>
+inline bool assert_positive_smooth(T t, T eps=1e-6) {
+    assert(t > -eps);
+}
