@@ -89,15 +89,15 @@ static PyObject* hmm_get_init_probs(PyObject_HMM *self, void *closure) {
     npy_intp dims[] = {init_prob.size()};
 
     return PyArray_SimpleNewFromData(1, dims, NPY_FTYPE, init_prob.data());
-
 }
 
-
+static PyObject *hmm_set_transition_constraints(PyObject_HMM *self, PyObject *args, PyObject* kwargs);
 static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwargs);
 static PyObject *hmm_fit(PyObject_HMM *self, PyObject *args, PyObject* kwargs);
 static PyObject *hmm_viterbi(PyObject_HMM *self, PyObject *args, PyObject* kwargs);
 
 static PyMethodDef PyObject_HMM_methods[] = {
+    {"set_transition_constraints", (PyCFunction) hmm_set_transition_constraints, METH_VARARGS | METH_KEYWORDS, "Set constraints for the transition matrix"},
     {"add_state", (PyCFunction) hmm_add_state, METH_VARARGS | METH_KEYWORDS, "Add an emission state"},
     {"fit", (PyCFunction) hmm_fit, METH_VARARGS | METH_KEYWORDS, "Fit method"},
     {"viterbi", (PyCFunction) hmm_viterbi, METH_VARARGS | METH_KEYWORDS, "Viterbi method"},
@@ -161,6 +161,72 @@ PyTypeObject PyType_HMM_class() {
     return result;
 }
 
+static PyObject *hmm_set_transition_constraints(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
+
+    if (self == NULL) {
+        return NULL;
+    }
+
+    PyObject* constraints_obj = NULL;
+
+    char *keywords[] = {
+        "constraints",
+        NULL
+    };
+
+    HMM<ftype> *hmm = self->hmm;
+    if (hmm == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Internal error, you can start to panic");
+        Py_RETURN_NONE;
+    }
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O", keywords, &constraints_obj)) {
+        PyErr_SetString(PyExc_ValueError, "Argument parsing failed");
+        Py_RETURN_NONE;
+    }
+
+    if (constraints_obj == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Constraint matrix is invalid");
+        Py_RETURN_NONE;
+    }
+
+    PyArrayObject* transition_array = (PyArrayObject*) PyArray_FROMANY(constraints_obj, NPY_FTYPE, 2, 2,
+                                                                       NPY_ARRAY_FORCECAST |
+                                                                       NPY_ARRAY_C_CONTIGUOUS |
+                                                                       NPY_ARRAY_ALIGNED);
+
+    if (transition_array == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Constraint matrix is invalid");
+        Py_RETURN_NONE;
+    }
+
+    SCOPE_DECREF(transition_array);
+
+    uint M1 = PyArray_DIM(transition_array, 0);
+    uint M2 = PyArray_DIM(transition_array, 1);
+
+    if (M1 != M2) {
+        PyErr_SetString(PyExc_ValueError, "Constraint matrix is not square");
+        Py_RETURN_NONE;
+    }
+
+    ftype *transition_array_ptr = (ftype*) PyArray_DATA(transition_array);
+    if (transition_array_ptr == NULL) {
+        PyErr_SetString(PyExc_ValueError, "Constraint matrix is invalid");
+        Py_RETURN_NONE;
+    }
+
+    bool status = hmm->set_transition_constraints(transition_array_ptr, M1);
+    if (!status) {
+        PyErr_SetString(PyExc_ValueError, "Constraint matrix is invalid, please ensure"
+                        "that the sum of specified coefficient for each row is either equal"
+                        "to 1 or is less than 1 with at least one unspecified coefficient");
+        Py_RETURN_NONE;
+    }
+
+    Py_RETURN_NONE;
+
+}
 
 static PyObject *hmm_add_state(PyObject_HMM *self, PyObject *args, PyObject* kwargs) {
 

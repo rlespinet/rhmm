@@ -36,6 +36,10 @@ struct HMM {
     MatrixXR<dtype> transition;
     VectorX<dtype> init_prob;
 
+    MatrixXR<dtype> constraints;
+    VectorX<dtype> constraints_pleft;
+    VectorX<uint>  constraints_count;
+
 public:
     HMM();
     ~HMM();
@@ -46,6 +50,7 @@ public:
     vector< vector<uint> > viterbi(const Sequence<dtype> *data, uint len);
     void fit(const Sequence<dtype> *data, uint len, dtype eps = 1e-6, uint max_iters = 1000);
     uint add_state(Distribution<dtype> *distribution);
+    bool set_transition_constraints(const dtype *transition, uint M);
 
 private:
     inline dtype forward_backward(const Sequence<dtype> &seq,

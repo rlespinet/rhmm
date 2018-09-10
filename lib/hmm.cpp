@@ -363,6 +363,42 @@ void HMM<dtype>::apply_init_prob_update() {
 
 }
 
+template<typename dtype>
+bool HMM<dtype>::set_transition_constraints(const dtype *constraints, uint M) {
+
+    dtype *constraints_data = new dtype[M * M];
+    VectorX<dtype> constraints_pleft = VectorX<dtype>::Zero(M);
+    VectorX<uint> constraints_count = VectorX<uint>::Zero(M);
+
+    for (uint i = 0; i < M; i++) {
+        dtype sum_row = 0;
+        uint  num_row = 0;
+        for (uint j = 0; j < M; j++) {
+            if (constraints[M*i+j] < 0)
+                constraints_data[M*i+j] = 1;
+            else {
+                constraints_data[M*i+j] = std::log(constraints[M*i+j]);
+                sum_row += constraints[M*i+j];
+                num_row += 1;
+            }
+        }
+
+        if (sum_row > 1 || (sum_row < 1 && num_row == M)) {
+            delete[] constraints_data;
+            return false;
+        }
+
+        constraints_pleft[i] = std::log(1 - sum_row);
+        constraints_count[i] = num_row;
+    }
+
+    this->constraints = Map< MatrixXR<dtype> >(constraints_data, M, M);
+    this->constraints_pleft = constraints_pleft;
+    this->constraints_count = constraints_count;
+
+    return true;
+}
+
 
 template<typename dtype>
 void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_iters) {
