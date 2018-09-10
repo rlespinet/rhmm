@@ -15,16 +15,6 @@ HMM<dtype>::~HMM() {
 }
 
 template<typename dtype>
-void HMM<dtype>::init() {
-
-    const uint M = states.size();
-
-    transition = std::log(1.0 / M) * MatrixX<dtype>::Ones(M, M);
-    init_prob = std::log(1.0 / M) * VectorX<dtype>::Ones(M);
-
-}
-
-template<typename dtype>
 inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
                                           MatrixX<dtype> &alpha, MatrixX<dtype> &beta,
                                           MatrixX<dtype> &gamma, MatrixX<dtype> &xi) {
@@ -287,6 +277,7 @@ void HMM<dtype>::update_transition_params(const MatrixX<dtype> &xi, uint T) {
     }
 
     // Update transition matrix
+    // TODO(RL) use the constraint to avoid certain computations
     for (uint i = 0; i < M; i++) {
         for (uint j = 0; j < M; j++) {
 
@@ -315,16 +306,21 @@ void HMM<dtype>::apply_transition_update() {
     for (uint i = 0; i < M; i++) {
         std::vector<dtype> v;
         for (uint k = 0; k < M; k++) {
-            v.push_back(update_transition(i, k));
+            if (constraints(i, k) > 0) {
+                v.push_back(update_transition(i, k));
+            }
         }
         dtype w = log_sum_exp(v.data(), v.size());
         for (uint j = 0; j < M; j++) {
-            update_transition(i, j) -= w;
+            if (constraints(i, j) > 0) {
+                update_transition(i, j) += constraints_pleft[i] - w;
+            } else {
+                update_transition(i, j) = constraints(i, j);
+            }
         }
     }
 
     transition = update_transition;
-
 }
 
 
@@ -401,7 +397,36 @@ bool HMM<dtype>::set_transition_constraints(const dtype *constraints, uint M) {
 
 
 template<typename dtype>
-void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_iters) {
+bool HMM<dtype>::init_fit() {
+
+    const uint M = states.size();
+
+    init_prob = std::log(1.0 / M) * VectorX<dtype>::Ones(M);
+
+
+    if (constraints.size() == 0) {
+        constraints       = MatrixXR<dtype>::Ones(M, M);
+        constraints_pleft = VectorX<dtype>::Zero(M);
+        constraints_count = VectorX<uint>::Zero(M);
+    }
+
+    transition = MatrixX<dtype>::Zero(M, M);
+    for (uint i = 0; i < M; i++) {
+        for (uint j = 0; j < M; j++) {
+            if (constraints(i, j) > 0) {
+                transition(i, j) = constraints_pleft[i] - std::log(M - constraints_count[i]);
+            } else {
+                transition(i, j) = constraints(i, j);
+            }
+        }
+    }
+
+    return true;
+
+}
+
+template<typename dtype>
+bool HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_iters) {
 
     uint max_rows = std::numeric_limits<uint>::lowest();
     for (uint i = 0; i < len; i++) {
@@ -410,7 +435,10 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_
 
     const uint M = states.size();
 
-    init();
+    bool status = init_fit();
+    if (!status) {
+        return false;
+    }
 
     MatrixX<dtype> alpha(M, max_rows);
     MatrixX<dtype> beta(M, max_rows);
@@ -475,6 +503,8 @@ void HMM<dtype>::fit(const Sequence<dtype> *data, uint len, dtype eps, uint max_
         std::cout << "likelihood : " << likelihood << std::endl;
 
     }
+
+    return true;
 
 }
 
