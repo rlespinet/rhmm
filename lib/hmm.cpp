@@ -106,13 +106,31 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
 
     std::vector<dtype> p_obs(T);
     for (uint t = 0; t < T; t++) {
-        std::vector<dtype> terms(M);
-        for (uint i = 0; i < M; i++) {
-            terms[i] = alpha(i, t) + beta(i, t);
+
+        if (seq.labels[t] != -1) {
+
+            uint i = seq.labels[t];
+
+            p_obs[t] = alpha(i, t) + beta(i, t);
+
+        } else {
+
+            std::vector<dtype> terms(M);
+            for (uint i = 0; i < M; i++) {
+                terms[i] = alpha(i, t) + beta(i, t);
+            }
+            p_obs[t] = log_sum_exp(terms.data(), terms.size());
+
         }
-        p_obs[t] = log_sum_exp(terms.data(), terms.size());
+
         assert_negative_smooth(p_obs[t]);
     }
+
+    // TODO(RL) we should warn the user if p_obs is -inf
+    // which probably means that data with these labels
+    // cannot occur with these constraints. at this point
+    // gamma and xi don't make sense, we should also drop
+    // the sequence
 
     for (uint t = 0; t < T; t++) {
 
