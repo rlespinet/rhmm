@@ -36,7 +36,7 @@ public:
     }
 
     MatrixX<dtype> get() {
-        return llt.matrixLLT();
+        return llt.reconstructedMatrix();
     }
 
     dtype inv_quad(const VectorX<dtype> &x) {
