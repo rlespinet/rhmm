@@ -113,7 +113,7 @@ inline dtype HMM<dtype>::forward_backward(const Sequence<dtype> &seq,
 
         }
 
-        assert_negative_smooth(p_obs[t]);
+        assert_not_nan(p_obs[t]);
     }
 
     // TODO(RL) we should warn the user if p_obs is -inf
