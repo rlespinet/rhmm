@@ -110,6 +110,8 @@ struct MultivariateGaussian : Distribution<dtype> {
         // TODO(RL) Implement
         uint D = mean.size();
 
+        constexpr dtype EPS = std::numeric_limits<dtype>::epsilon();
+
         dtype *weight = new dtype[T];
         for (uint t = 0; t < T; t++) {
             weight[t] = std::exp(gamma[t]);
@@ -119,12 +121,14 @@ struct MultivariateGaussian : Distribution<dtype> {
             update_weight_sum += weight[t];
         }
 
-        VectorX<dtype> new_update_mean = update_mean;
+        VectorX<dtype> new_update_mean = VectorX<dtype>::Zero(D);
         for (uint t = 0; t < T; t++) {
             const VectorX<dtype> data_t = Map< VectorX<dtype> >(const_cast<dtype*>(data) + D * t, D);
             // TODO(RL) Underflow ?
-            new_update_mean += weight[t] / update_weight_sum * (data_t - update_mean);
+            new_update_mean += weight[t] * (data_t - update_mean);
         }
+
+        new_update_mean = update_mean + new_update_mean / (update_weight_sum + EPS);
 
         for (uint t = 0; t < T; t++) {
             const VectorX<dtype> data_t = Map< VectorX<dtype> >(const_cast<dtype*>(data) + D * t, D);
@@ -140,8 +144,11 @@ struct MultivariateGaussian : Distribution<dtype> {
 
         uint D = mean.size();
 
+        constexpr dtype EPS = std::numeric_limits<dtype>::epsilon();
+
         mean = update_mean;
-        cov = MatrixX<dtype>(update_cov / update_weight_sum + cov_reg * MatrixX<dtype>::Identity(D, D));
+        cov = MatrixX<dtype>(update_cov / (update_weight_sum + EPS) + cov_reg * MatrixX<dtype>::Identity(D, D));
+
     }
 
 private:
