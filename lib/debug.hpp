@@ -41,3 +41,8 @@ template<typename T>
 inline void assert_positive_smooth(T t, T eps=1e-6) {
     assert(t > -eps);
 }
+
+template<typename T>
+inline void assert_not_small(T t, T eps=1e-9) {
+    assert(abs(t) < eps);
+}
