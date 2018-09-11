@@ -28,16 +28,16 @@ namespace debug {
 #include <cassert>
 
 template<typename T>
-inline bool assert_not_nan(T t) {
+inline void assert_not_nan(T t) {
     assert(!std::isnan(t));
 }
 
 template<typename T>
-inline bool assert_negative_smooth(T t, T eps=1e-6) {
+inline void assert_negative_smooth(T t, T eps=1e-6) {
     assert(t < eps);
 }
 
 template<typename T>
-inline bool assert_positive_smooth(T t, T eps=1e-6) {
+inline void assert_positive_smooth(T t, T eps=1e-6) {
     assert(t > -eps);
 }
